@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Stories</title>
+  <%= stylesheet_link_tag    "application", :media => "all" %>
+  <%= javascript_include_tag "application" %>
+  <%= csrf_meta_tags %>
+  <link href='http://fonts.googleapis.com/css?family=Qwigley' rel='stylesheet' type='text/css'>
+  <link href='http://fonts.googleapis.com/css?family=Junge' rel='stylesheet' type='text/css'>
+</head>
+<body>
+
+<%= render '/layouts/user_panel' %>
+
+<%= yield %>
+
+</body>
+</html>

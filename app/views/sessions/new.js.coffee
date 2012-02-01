@@ -1,0 +1,1 @@
+$('body').append("<%= escape_javascript(render 'form_login') %>")

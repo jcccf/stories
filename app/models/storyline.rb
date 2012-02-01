@@ -1,0 +1,84 @@
+class Storyline < ActiveRecord::Base
+  attr_accessor :prev, :next # Id of next storyline in that particular story (not necessarily set)
+  
+  def prev_links
+    StorylineLinks.where('to_id = ?', self.id)
+  end
+  
+  def next_links
+    StorylineLinks.where('from_id = ?', self.id)
+  end
+  
+  def insert_before(sline)
+    sline.prev_links.update_all(:to_id => self.id)
+    StorylineLinks.new(:from_id => self.id, :to_id => sline.id).save
+  end
+  
+  # Insert a line after sline in all paths if add is false
+  # or add a new path if add is true
+  def insert_after(sline, add=false)
+    sline.next_links.update_all(:from_id => self.id) unless add
+    StorylineLinks.new(:from_id => sline.id, :to_id => self.id).save
+  end
+  
+  # Insert a line between s1 and s2 in all paths if add is false
+  # or add a new path between s1 and s2 if add is true
+  def insert_between(s1, s2, add=false)
+    if not add
+      StorylineLinks.where('from_id = ? AND to_id = ?', s1, s2).update_all(:to_id => self.id)
+    else
+      StorylineLinks.new(:from_id => s1.id, :to_id => self.id).save
+    end
+    StorylineLinks.new(:from_id => self.id, :to_id => s2.id).save
+  end
+  
+  # Return a random continuation from the current Storyline,
+  # starting with the lines corresponding to start_ids if provided
+  def random_continuation(start_ids=[])
+    continuations, picked, old_picked = [], self, nil
+    start_ids.each do |i|
+      old_picked = picked
+      picked = Storyline.find(i)
+      Storyline.link(old_picked, picked)
+      continuations << picked
+    end
+    while true do
+      nexts = picked.next_links
+      if nexts.size > 0
+        old_picked = picked
+        picked = nexts[rand(nexts.size)].to_line
+        Storyline.link(old_picked, picked)
+        continuations << picked
+      else
+        break
+      end  
+    end
+    continuations
+  end
+  
+  def upvotes_zero
+    self.upvotes.nil? ? 0 : self.upvotes
+  end
+  
+  # Up-vote a storyline
+  def upvote
+    self.upvotes ||= 0
+    self.upvotes += 1
+    self.save
+  end
+  
+  #
+  # Class Methods
+  #
+  
+  def self.roots
+    Storyline.all
+    #Storyline.where("previous IS NULL")
+  end
+  
+  def self.link(first, second)
+    first.next = second.id
+    second.prev = first.id
+  end
+  
+end

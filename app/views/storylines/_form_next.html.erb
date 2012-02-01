@@ -1,0 +1,22 @@
+<%= form_for @storyline_next, :remote => true do |f| %>
+<% if @storyline_next.errors.any? %>
+<div id="error_explanation">
+  <h2><%= pluralize(@storyline_next.errors.count, "error") %> prohibited this storyline from being saved:</h2>
+
+  <ul>
+    <% @storyline_next.errors.full_messages.each do |msg| %>
+    <li><%= msg %></li>
+    <% end %>
+  </ul>
+</div>
+<% end %>
+
+<div class="field">
+  <!-- <%= f.label :line %><br /> -->
+  <%= f.text_field :line, :size => 60, :placeholder => "Then what?" %><%= f.submit 'Add' %>
+</div>
+<div class="field">
+  <%= f.hidden_field :prev %>
+  <%= hidden_field_tag "start_id", @start_id %>
+</div>
+<% end %>

@@ -1,0 +1,14 @@
+<h1>Storeys</h1>
+
+<div class="story">
+<% @storylines.each do |storyline| %>
+  <%= link_to storyline.line, storyline %>
+    <!-- <td><%= link_to 'Edit', edit_storyline_path(storyline) %></td> -->
+    <!-- <td><%= link_to 'Delete', storyline, confirm: 'Are you sure?', method: :delete %></td> -->
+<% end %>
+
+<footer>
+<%= link_to 'New Story', new_storyline_path %>
+</footer>
+
+</div>

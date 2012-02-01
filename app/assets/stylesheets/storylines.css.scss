@@ -1,0 +1,182 @@
+// Place all the styles related to the Storylines controller here.
+// They will automatically be included in application.css.
+// You can use Sass (SCSS) here: http://sass-lang.com/
+
+h1, h2 {
+  text-align: center;
+  font-style: italic;
+  font-family: "Qwigley", cursive;
+}
+
+h1 {
+  font-size: 5.0em;
+  line-height: 100px;
+}
+
+h2 {
+  font-size: 4.0em;
+  line-height: 80px;
+}
+
+.story_top, .story {
+  width: 600px;
+  margin: auto;
+  text-align: justify;
+}
+
+.story_top {
+  font-size: larger;
+  margin-top: 10px;
+}
+
+.storytools {
+  width: 80px;
+  margin-right: -90px;
+  float: right;
+  opacity: 0.1;
+  -webkit-transition:opacity 0.5s ease-in;  
+  -moz-transition:opacity 0.5s ease-in;  
+  -o-transition:opacity 0.5s ease-in;  
+  transition:opacity 0.5s ease-in;
+  
+  a:hover {
+    background-color: transparent;
+  }
+}
+
+.storyline {
+  margin-right: 0px;
+  -webkit-transition:color 0.5s ease-in;  
+  -moz-transition:color 0.5s ease-in;  
+  -o-transition:color 0.5s ease-in;  
+  transition:color 0.5s ease-in;
+  
+  a {
+    background-color: transparent;
+    -webkit-transition:color 0.5s ease-in;  
+    -moz-transition:color 0.5s ease-in;  
+    -o-transition:color 0.5s ease-in;  
+    transition:color 0.5s ease-in;
+  }
+}
+
+.storyline_pen {
+  margin-left: -22px;
+  float: left;
+  opacity: 0.1;
+  -webkit-transition:opacity 0.5s ease-in;  
+  -moz-transition:opacity 0.5s ease-in;  
+  -o-transition:opacity 0.5s ease-in;  
+  transition:opacity 0.5s ease-in;
+}
+
+.storyline_wrapper:hover {
+  a {
+    color: orange;
+  }
+  .storyline {
+    color: orange;
+    .storyid {
+      color: black;
+    }
+  }
+  .storyline_pen {
+    opacity: 1.0;
+  }
+  .storytools {
+    opacity: 1.0;
+  }
+}
+
+p, section {
+  margin-top: 5px;
+}
+
+section a {
+  text-decoration: none;
+}
+
+textarea {
+  width: 580px;
+}
+
+footer {
+  margin-top: 25px;
+  text-align: center;
+  font-size: smaller;
+}
+
+.storyins {
+  font-size: smaller;
+  margin: -10px -25px -13px -20px;
+  color: #dfdfdf;
+  text-decoration: none;
+  -webkit-transition:color 0.5s ease-in;  
+  -moz-transition:color 0.5s ease-in;  
+  -o-transition:color 0.5s ease-in;  
+  transition:color 0.5s ease-in;
+}
+
+.storyins_wrapper {
+  margin-top: 2px;
+}
+
+.storyins_wrapper:hover {
+  .storyins_hr {
+    background-color: orange;
+  }
+  .storyins {
+    color: black;
+  }
+}
+
+.storyins_hr {
+  height: 1px;
+  background-color: white;
+  -webkit-transition:background-color 0.5s ease-in;  
+  transition:background-color 0.5s ease-in;
+}
+
+.ins {
+  margin: 0;
+}
+
+.storyid {
+  margin-right: -120px;
+  float: right;
+  color: white;
+  font-size: smaller;
+  -webkit-transition:color 0.5s ease-in;  
+  -moz-transition:color 0.5s ease-in;  
+  -o-transition:color 0.5s ease-in;  
+  transition:color 0.5s ease-in;
+}
+
+.callout {
+  position: relative;
+  padding: 1px 3px 1px 5px;
+  background-color: #fff;
+  border-radius: 5px;
+  border: 1px solid #cfcfcf;
+  margin-right: 10px;
+  margin-left: 2px;
+  
+  .triangle {
+    position: absolute;
+    top: 6px;
+    left: -5px;
+    width: 0;
+    height: 0;
+    border-left: 0;
+    border-top: 5px solid transparent;
+    border-bottom: 5px solid transparent;
+    border-right: 5px solid #fff;
+  }
+  
+  .triborder {
+    border-right-color: #cfcfcf;
+    top: 6px;
+    left: -6px;
+  }
+  
+}

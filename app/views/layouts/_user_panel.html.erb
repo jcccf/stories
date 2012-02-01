@@ -1,0 +1,7 @@
+<div id="user_panel">
+  <% if @current_user %>
+    <%= @current_user.name %> / <%= link_to 'Logout', logout_url, method: :delete %>
+  <% else %>
+    <%= link_to 'Login', login_url, remote: true %> / <%= link_to 'Register', new_user_url %>
+  <% end %>
+</div>

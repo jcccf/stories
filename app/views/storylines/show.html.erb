@@ -1,0 +1,62 @@
+<p id="notice"><%= notice %></p>
+
+<h2>Storeys</h2>
+
+<div class="story">
+  <section>
+    <div class="storyid"><%= @storyline.id %></div>
+    <div class="storyline_wrapper">
+    <div class="storyline_pen"><%= image_tag("pen.png", :border => 0) %></div>
+    <div class="storyline story_top" data-id="<%= @storyline.id %>">
+      <%= link_to @storyline.line, edit_storyline_path(@storyline, :start_id => @storyline.id, :next => @storyline.next), :remote=>true %>
+    </div>
+    </div>
+    <%= link_to storyline_new_continue_path(@storyline), :remote=>true, :class=>'new_continue' do %>
+      <div class="storyins_wrapper">
+      <div class="storyins" data-id="<%= @storyline.id %>">
+        &gt;&gt;
+      </div>
+      <div class="storyins_hr">&nbsp;</div>
+      </div>
+    <% end %>
+  </section>
+  
+  <% @continuations.each do |storyline| %>
+  <section data-id="<%= storyline.id %>">
+    <div class="storyline_wrapper">
+    <div class="storyid"><%= storyline.id %></div>
+    <div class="storytools">
+      <%= link_to image_tag("upvote.png", :border => 0), storyline_upvote_path(storyline), :remote => true %>
+      <span class="callout">
+        <span class="votes"><%= storyline.upvotes_zero %></span>
+        <i class="triangle triborder"></i>
+        <i class="triangle"></i>
+      </span>
+      <%= link_to image_tag("root.png", :border => 0), storyline %>
+    </div>
+    
+	    <div class="storyline_pen"><%= image_tag("pen.png", :border => 0) %></div>
+	    <div class="storyline" data-id="<%= storyline.id %>">
+        <%= link_to storyline.line, edit_storyline_path(storyline, :start_id => @storyline.id, :prev => storyline.prev, :next => storyline.next), :remote => true %>
+        <!-- <%= best_in_place storyline, :line, :type => :textarea, :html_attrs => { :size => 100 } %> -->
+      </div>
+    </div>
+    <%= link_to storyline_new_continue_path(storyline, :start_id => @storyline.id), :remote => true, :class=>'new_continue' do %>
+      <div class="storyins_wrapper">
+        <div class="storyins" data-id="<%= storyline.id %>">
+          &gt;&gt;
+        </div>
+        <div class="storyins_hr">&nbsp;</div>
+      </div>
+    <% end %>
+  </section>
+  <!-- <td><%= link_to 'Edit', edit_storyline_path(storyline) %></td> -->
+  <!-- <td><%= link_to 'Delete', storyline, confirm: 'Are you sure?', method: :delete %></td> -->
+  <% end %>
+
+  <footer>
+    <%= link_to 'Back', storylines_path %> | 
+    <%= link_to 'Surprise me!', storyline_path(@storyline) %>
+  </footer>
+</div>
+

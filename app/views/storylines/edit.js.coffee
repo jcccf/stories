@@ -1,0 +1,1 @@
+$('.storyline[data-id=<%= @storyline.id %>]').html("<%= escape_javascript(render 'form_edit') %>")

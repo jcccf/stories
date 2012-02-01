@@ -1,0 +1,2 @@
+module StorylinesHelper
+end
