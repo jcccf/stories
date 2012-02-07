@@ -12,22 +12,22 @@
   <% end %>
 
   <div class="field">
-    <%= f.label :name %><br />
-    <%= f.text_field :name, size: 40 %>
-  </div>
-  <div>
-    <%= f.label :password, 'Password' %>:
-    <%= f.password_field :password, size: 40 %>
-  </div>
-  <div>
-    <%= f.label :password_confirmation, 'Confirm' %>:
-    <%= f.password_field :password_confirmation, size: 40 %>
+    <!-- <%= f.label :name %><br /> -->
+    <%= f.text_field :name, size: 40, :placeholder => 'Name'  %>
   </div>
   <div class="field">
-    <%= f.label :email %><br />
-    <%= f.text_field :email %>
+    <!-- <%= f.label :password, 'Password' %>: -->
+    <%= f.password_field :password, size: 40, :placeholder => 'Password'  %>
+  </div>
+  <div class="field">
+    <!-- <%= f.label :password_confirmation, 'Confirm' %>: -->
+    <%= f.password_field :password_confirmation, size: 40, :placeholder => 'Retype Password'  %>
+  </div>
+  <div class="field">
+    <!-- <%= f.label :email %><br /> -->
+    <%= f.text_field :email, size: 40, :placeholder => 'Email'  %>
   </div>
   <div class="actions">
-    <%= f.submit %>
+    <%= f.submit 'Register' %>
   </div>
 <% end %>

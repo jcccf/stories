@@ -2,22 +2,6 @@
 // They will automatically be included in application.css.
 // You can use Sass (SCSS) here: http://sass-lang.com/
 
-h1, h2 {
-  text-align: center;
-  font-style: italic;
-  font-family: "Qwigley", cursive;
-}
-
-h1 {
-  font-size: 5.0em;
-  line-height: 100px;
-}
-
-h2 {
-  font-size: 4.0em;
-  line-height: 80px;
-}
-
 .story_top, .story {
   width: 600px;
   margin: auto;
@@ -38,6 +22,10 @@ h2 {
   -moz-transition:opacity 0.5s ease-in;  
   -o-transition:opacity 0.5s ease-in;  
   transition:opacity 0.5s ease-in;
+  
+  img {
+    margin-bottom: -3px;
+  }
   
   a:hover {
     background-color: transparent;

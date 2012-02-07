@@ -18,12 +18,11 @@ class StorylinesController < ApplicationController
   def show
     @storyline = Storyline.find(params[:id])    
     other_ids = params[:other_ids] ? params[:other_ids].split(",").map{|x| x.to_i} : []
-    @continuations = @storyline.random_continuation(other_ids)
-    
+    @continuations = @storyline.random_continuation(other_ids, [params[:next].to_i])
     respond_to do |format|
       format.html # show.html.erb
       format.json { render json: @storyline }
-      format.js { render :nothing => true }
+      format.js { @continuations.unshift @storyline }
     end
   end
 
@@ -80,7 +79,7 @@ class StorylinesController < ApplicationController
     
     # Split into sentences and create separate storylines for each sentence
     lines = TactfulTokenizer::Model.new.tokenize_text(@storyline.line)   
-    previous = @storyline.prev
+    previous = Storyline.find(@storyline.prev)
     lines.each do |line|
       @storyline = Storyline.new(:line => line)
       @storyline.save

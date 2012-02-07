@@ -7,12 +7,12 @@
   last_id = $section.find('.storyid').text()
   rest_ids = ""
   $('section:not(:first)').each ->
-    curr = $(this).find('.storyid').text()
+    curr = $(this).attr('data-id')
     if curr != last_id
       rest_ids += curr + ","
     else
       return false
-    rest_ids += last_id unless exclude
+  rest_ids += last_id unless exclude
   return rest_ids
 
 # Fade out rest of story when hovering over a separating line

@@ -1,4 +1,6 @@
 class Storyline < ActiveRecord::Base
+  belongs_to :user
+  
   attr_accessor :prev, :next # Id of next storyline in that particular story (not necessarily set)
   
   def prev_links
@@ -34,7 +36,9 @@ class Storyline < ActiveRecord::Base
   
   # Return a random continuation from the current Storyline,
   # starting with the lines corresponding to start_ids if provided
-  def random_continuation(start_ids=[])
+  # exclude ids listed in exclusions (after start_ids)
+  def random_continuation(start_ids=[], exclusions=[])
+    puts "Excluding %d" % exclusions
     continuations, picked, old_picked = [], self, nil
     start_ids.each do |i|
       old_picked = picked
@@ -43,7 +47,8 @@ class Storyline < ActiveRecord::Base
       continuations << picked
     end
     while true do
-      nexts = picked.next_links
+      nexts = picked.next_links.select {|n| not (exclusions.include? n.to_id) }
+      puts nexts.inspect
       if nexts.size > 0
         old_picked = picked
         picked = nexts[rand(nexts.size)].to_line
