@@ -15,7 +15,7 @@ group :assets do
   gem 'coffee-rails', '~> 3.2.1'
 
   # See https://github.com/sstephenson/execjs#readme for more supported runtimes
-  # gem 'therubyracer'
+  gem 'therubyracer'
 
   gem 'uglifier', '>= 1.0.3'
 end
@@ -40,3 +40,8 @@ gem 'bcrypt-ruby', '~> 3.0.0'
 gem 'tactful_tokenizer'
 gem 'best_in_place'
 gem 'amatch'
+gem 'mysql2'
+
+group :production do
+  gem 'coffeebeans'
+end
