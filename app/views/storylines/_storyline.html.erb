@@ -2,13 +2,21 @@
   <div class="storyline_wrapper">
   <div class="storyid"><%= storyline.id %></div>
   <div class="storytools">
-    <%= link_to image_tag("upvote.png", :border => 0), storyline_upvote_path(storyline), :remote => true %>
-    <span class="callout">
-      <span class="votes"><%= storyline.upvotes_zero %></span>
-      <i class="triangle triborder"></i>
-      <i class="triangle"></i>
-    </span>
-    <%= link_to image_tag("root.png", :border => 0), storyline_path(storyline, :next => storyline.next), :remote => true %>
+    <div class="reload">
+      <%= link_to image_tag("root.png", :border => 0), storyline_path(storyline, :next => storyline.next), :remote => true %>
+    </div>
+    <div class="voting">
+      <% if @current_user %>
+      <%= link_to image_tag("upvote_red.png", :border => 0), storyline_upvote_path(storyline), :remote => true %>    
+      <% else %>
+        <%= image_tag("upvote.png", :border => 0) %>
+      <% end %>
+      <span class="callout">
+        <span class="votes"><%= storyline.upvotes_zero %></span>
+        <i class="triangle triborder"></i>
+        <i class="triangle"></i>
+      </span>
+    </div>
   </div>
     
     <div class="storyline_pen"><%= image_tag("pen.png", :border => 0) %></div>

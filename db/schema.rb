@@ -11,7 +11,15 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20120207035046) do
+ActiveRecord::Schema.define(:version => 20120208044042) do
+
+  create_table "feedbacks", :force => true do |t|
+    t.string   "comment"
+    t.string   "url"
+    t.integer  "user_id"
+    t.datetime "created_at", :null => false
+    t.datetime "updated_at", :null => false
+  end
 
   create_table "likes", :force => true do |t|
     t.integer  "user_id"
@@ -34,6 +42,7 @@ ActiveRecord::Schema.define(:version => 20120207035046) do
     t.integer  "upvotes"
     t.integer  "downvotes"
     t.integer  "user_id"
+    t.boolean  "root"
   end
 
   create_table "users", :force => true do |t|

@@ -6,7 +6,8 @@ Stories::Application.routes.draw do
     post 'login' => :create
     delete 'logout' => :destroy
   end
-
+  
+  resources :feedbacks
   resources :users
   resources :storylines do
     get 'new_continue'

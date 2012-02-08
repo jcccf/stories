@@ -77,8 +77,8 @@ class Storyline < ActiveRecord::Base
   #
   
   def self.roots
-    Storyline.all
-    #Storyline.where("previous IS NULL")
+    #Storyline.all
+    Storyline.where("root = 1")
   end
   
   def self.link(first, second)

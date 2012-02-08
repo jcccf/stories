@@ -86,12 +86,16 @@ class StorylinesController < ApplicationController
     
     # Split into sentences and create separate storylines for each sentence
     lines = TactfulTokenizer::Model.new.tokenize_text(@storyline.line)   
-    previous = Storyline.find(@storyline.prev)
+    previous = Storyline.find(@storyline.prev) if @storyline.prev
     lines.each do |line|
       @storyline = Storyline.new(:line => line)
       @storyline.user = @current_user if @current_user
       @storyline.save
-      @storyline.insert_after(previous, true)
+      if previous
+        @storyline.insert_after(previous, true)
+      else
+        @storyline.root = true
+      end
       previous = @storyline
     end
     

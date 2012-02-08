@@ -19,23 +19,6 @@
   margin-top: 10px;
 }
 
-.storytools {
-  width: 80px;
-  margin-right: -90px;
-  float: right;
-  opacity: 0.1;
-  -webkit-transition:opacity 0.5s ease-in;  
-  -moz-transition:opacity 0.5s ease-in;  
-  -o-transition:opacity 0.5s ease-in;  
-  transition:opacity 0.5s ease-in;
-  
-  @include icon_offset;
-  
-  a:hover {
-    background-color: transparent;
-  }
-}
-
 .storyline {
   margin-right: 0px;
   -webkit-transition:color 0.5s ease-in;  
@@ -145,6 +128,32 @@ footer {
   -moz-transition:color 0.5s ease-in;  
   -o-transition:color 0.5s ease-in;  
   transition:color 0.5s ease-in;
+}
+
+.storytools {
+  width: 75px;
+  margin-right: -90px;
+  float: right;
+  opacity: 0.1;
+  -webkit-transition:opacity 0.5s ease-in;  
+  -moz-transition:opacity 0.5s ease-in;  
+  -o-transition:opacity 0.5s ease-in;  
+  transition:opacity 0.5s ease-in;
+  
+  @include icon_offset;
+  
+  a:hover {
+    background-color: transparent;
+  }
+}
+
+.voting {
+  float: right;
+  width: 55px;
+}
+
+.reload {
+  float: right;
 }
 
 .callout {

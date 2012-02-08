@@ -2,7 +2,12 @@
 
 <div class="story">
 <% @storylines.each do |storyline| %>
-  <%= link_to storyline.line, storyline %>
+  <div class="storyline_root">
+    <%= link_to storyline.line, storyline %>
+  </div>
+  <div class="storyline_divider">
+    <%= image_tag "divider.png" %>
+  </div>
     <!-- <td><%= link_to 'Edit', edit_storyline_path(storyline) %></td> -->
     <!-- <td><%= link_to 'Delete', storyline, confirm: 'Are you sure?', method: :delete %></td> -->
 <% end %>

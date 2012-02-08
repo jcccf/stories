@@ -1,4 +1,4 @@
-<%= form_for(@storyline) do |f| %>
+<%= form_for(@storyline, :html => { :class => "centralize" }) do |f| %>
   <% if @storyline.errors.any? %>
     <div id="error_explanation">
       <h2><%= pluralize(@storyline.errors.count, "error") %> prohibited this storyline from being saved:</h2>
@@ -12,14 +12,10 @@
   <% end %>
 
   <div class="field">
-    <%= f.label :line %><br />
-    <%= f.text_field :line, :size => 80 %>
+    <!-- <%= f.label :line %><br /> -->
+    <%= f.text_area :line, :size => 60, :placeholder => "Once upon a time..." %>
   </div>
-  <!-- <div class="field">
-    <%= f.label :previous %><br />
-    <%= f.number_field :previous %>
-  </div> -->
   <div class="actions">
-    <%= f.submit %>
+    <%= f.submit "I'm done!" %>
   </div>
 <% end %>
