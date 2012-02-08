@@ -78,7 +78,7 @@ class Storyline < ActiveRecord::Base
   
   def self.roots
     #Storyline.all
-    Storyline.where("root = 1")
+    Storyline.where(:root => true)
   end
   
   def self.link(first, second)

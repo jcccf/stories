@@ -95,14 +95,16 @@ class StorylinesController < ApplicationController
         @storyline.insert_after(previous, true)
       else
         @storyline.root = true
+        @storyline.save
       end
       previous = @storyline
+      @first_line ||= @storyline
     end
     
     respond_to do |format|
       if @storyline.save
         format.js
-        format.html { redirect_to @storyline, notice: 'Storyline was successfully created.' }
+        format.html { redirect_to @first_line, notice: 'Storyline was successfully created.' }
         format.json { render json: @storyline, status: :created, location: @storyline }
       else
         format.html { render action: "new" }
