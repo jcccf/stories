@@ -3,17 +3,18 @@
 # You can use CoffeeScript in this file: http://jashkenas.github.com/coffee-script/
 
 # Helper to get all ids of storylines on a page up to the given section, excluding the very first one
-@ids_up_to = ($section, exclude = false) ->
-  last_id = $section.find('.storyid').text()
-  rest_ids = ""
-  $('section:not(:first)').each ->
-    curr = $(this).attr('data-id')
-    if curr != last_id
-      rest_ids += curr + ","
-    else
-      return false
-  rest_ids += last_id unless exclude
-  return rest_ids
+# @ids_up_to = ($section, exclude = false) ->
+#   last_id = $section.attr('data-id')
+#   rest_ids = ""
+#   if $('section:eq(0)').attr('data-id') != last_id
+#     $('section:not(:first)').each ->
+#       curr = $(this).attr('data-id')
+#       if curr != last_id
+#         rest_ids += curr + ","
+#       else
+#         return false
+#   rest_ids += last_id + ',' unless exclude or $('section:eq(0)').attr('data-id') == last_id
+#   return rest_ids
 
 # Fade out rest of story when hovering over a separating line
 $ ->
@@ -26,4 +27,4 @@ $ ->
 # Clicking the pen icon results in a field becoming editable as well
 $ ->
   $('.storyline_pen').click ->
-    $(this).parent().parent().find('.best_in_place').click()
+    $(this).parent().parent().find('.storyline a').click()

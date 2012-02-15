@@ -137,7 +137,8 @@ class StorylinesController < ApplicationController
       @storyline.update_attributes(params[:storyline])
     else
       @rest_ids = ""
-      prev_line, next_line = Storyline.find(prev_id), Storyline.find(next_id)
+      prev_line = Storyline.exists?(prev_id) ? Storyline.find(prev_id) : nil
+      next_line = Storyline.exists?(next_id) ? Storyline.find(next_id) : nil
       # If first line matches, update it, then insert new path after that
       # Elif last line matches, update it, then insert new path before that
       ol = Amatch::PairDistance.new(@storyline.line)

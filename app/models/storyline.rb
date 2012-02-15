@@ -27,11 +27,17 @@ class Storyline < ActiveRecord::Base
   # or add a new path between s1 and s2 if add is true
   def insert_between(s1, s2, add=false)
     if not add
-      StorylineLinks.where('from_id = ? AND to_id = ?', s1, s2).update_all(:to_id => self.id)
+      if s1 and s2
+        StorylineLinks.where('from_id = ? AND to_id = ?', s1, s2).update_all(:to_id => self.id)
+      elsif s1
+        insert_after(s1, add)
+      elsif s2
+        insert_before(s2)
+      end
     else
-      StorylineLinks.new(:from_id => s1.id, :to_id => self.id).save
+      StorylineLinks.new(:from_id => s1.id, :to_id => self.id).save if s1
     end
-    StorylineLinks.new(:from_id => self.id, :to_id => s2.id).save
+    StorylineLinks.new(:from_id => self.id, :to_id => s2.id).save if s2
   end
   
   # Return a random continuation from the current Storyline,
