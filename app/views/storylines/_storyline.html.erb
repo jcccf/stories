@@ -3,13 +3,13 @@
   <div class="storyid"><%= storyline.id %></div>
   <div class="storytools">
     <div class="reload">
-      <%= link_to image_tag("root.png", :border => 0), storyline_path(storyline, :next => storyline.next), :remote => true %>
+      <%= link_to image_tag("root.png", :border => 0, 'data-tooltip' => 'Rebranch'), storyline_path(storyline, :next => storyline.next), :remote => true %>
     </div>
     <div class="voting">
       <% if @current_user %>
       <%= link_to image_tag("upvote_red.png", :border => 0), storyline_upvote_path(storyline), :remote => true %>    
       <% else %>
-        <%= image_tag("upvote.png", :border => 0) %>
+        <%= image_tag("upvote.png", :border => 0, :class => 'must_login') %>
       <% end %>
       <span class="callout">
         <span class="votes"><%= storyline.upvotes_zero %></span>
@@ -19,7 +19,7 @@
     </div>
   </div>
     
-    <div class="storyline_pen"><%= image_tag("pen.png", :border => 0) %></div>
+    <div class="storyline_pen"><%= image_tag("pen.png", :border => 0, 'data-tooltip' => 'Edit line') %></div>
     <div class="storyline<%= extraclass %>" data-id="<%= storyline.id %>">
       <%= link_to storyline.line, edit_storyline_path(storyline, :start_id => @storyline.id, :prev => storyline.prev, :next => storyline.next), :remote => true %>
       <!-- <%= best_in_place storyline, :line, :type => :textarea, :html_attrs => { :size => 100 } %> -->

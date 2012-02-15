@@ -17,12 +17,12 @@
 #   return rest_ids
 
 # Fade out rest of story when hovering over a separating line
-$ ->
-  $('.storyins_wrapper').hover (-> 
-    $(this).parent().parent().nextAll().css("opacity", "0.1") #.animate({opacity: 0.25}, 200)
-  ), (-> 
-    $(this).parent().parent().nextAll().css("opacity", "1.0") #.animate({opacity: 1}, 100)
-  )
+# $ ->
+#   $('.storyins_wrapper').hover (-> 
+#     $(this).parent().parent().nextAll().css("opacity", "0.1") #.animate({opacity: 0.25}, 200)
+#   ), (-> 
+#     $(this).parent().parent().nextAll().css("opacity", "1.0") #.animate({opacity: 1}, 100)
+#   )
 
 # Clicking the pen icon results in a field becoming editable as well
 $ ->

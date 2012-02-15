@@ -91,6 +91,39 @@ input[type=submit]:active {
   font-size: smaller;
 }
 
+#tooltip {
+  background-color: rgba(255,255,255,1);
+  display: none;
+  position: absolute;
+  text-align: center;
+  width: 100px;
+  padding: 2px 4px;
+  border-radius: 5px;
+  border: 1px solid #cfcfcf;
+  right: 10px;
+  top: 30px;
+  margin: 5px;
+  font-size: smaller;
+  
+  .triangle {
+    position: absolute;
+    bottom: -5px;
+    left: 10px;
+    width: 0;
+    height: 0;
+    border-top: 5px solid #fff;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-bottom: 0;
+  }
+  
+  .triborder {
+    border-top-color: #cfcfcf;
+    bottom: -6px;
+    left: 10px;
+  }
+}
+
 .depot_form {
   background-color: rgba(255,255,255,.8);
   position: absolute;
@@ -140,8 +173,9 @@ input[type=submit]:active {
   height: 150px;
   margin-left: -150px;
   margin-top: -75px;
-  background-color: rgba(255,255,255,.9);
+  background-color: rgba(255,255,255,1);
   box-shadow:  0px 0px 2px rgba(0,0,0,.4);
+  padding: 5px;
   display: table;
   div {
     text-align: center;
