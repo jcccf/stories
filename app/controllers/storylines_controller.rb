@@ -69,7 +69,7 @@ class StorylinesController < ApplicationController
   
   # GET /storylines/1/upvote
   def upvote
-    @storyline = Storyline.find(params[:storyline_id])
+    @storyline = Storyline.find(params[:id])
     if @current_user
       like = Like.new
       like.user = @current_user

@@ -4,7 +4,7 @@
     <div class="storytools">
       <div class="voting">
         <% if @current_user %>
-        <%= link_to image_tag("upvote_red.png", :border => 0), storyline_upvote_path(storyline), :remote => true %>    
+        <%= link_to image_tag("upvote_red.png", :border => 0), upvote_storyline_path(storyline), :remote => true %>    
         <% else %>
           <%= image_tag("upvote.png", :border => 0, :class => 'must_login') %>
         <% end %>
