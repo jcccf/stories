@@ -46,6 +46,6 @@ $(document).keydown (e) ->
       $('.active').next().click()
     else if e.keyCode == 38 #up
       $('.active').prev().click()
-  else if $('.active').length == 0
+  else if $('.active').length == 0 and not $(e.target).is('input')
     $('section:eq(0)').click()
     
