@@ -1,5 +1,4 @@
 $('.active').click() # Hide any other open forms
-
 # Return form to write a new line, and hide all subsequent storylines
 <% if @hide_rest %>
 $('.storyins[data-id=<%= @storyline_next.prev %>]')
@@ -16,4 +15,5 @@ $(document).click (e) ->
     $('section').show()
 
 $('.storyins[data-id=<%= @storyline_next.prev %>]').find('form').submit ->
-  $(this).find('input[type=submit]').hide()
+  $(this).prepend($(this).find('input[type=text]').val())
+  $(this).find('input').hide()

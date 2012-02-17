@@ -48,11 +48,10 @@ class StorylinesController < ApplicationController
   # GET /storylines/1/new_continue
   def new_continue
     @storyline_next = Storyline.new
-    @storyline_next.prev = params[:storyline_id]
+    @storyline_next.prev = params[:id]
     @storyline_next.next = params[:next]
     @start_id = params[:start_id]
     @hide_rest = params[:next].nil?
-    
     respond_to do |format|
       format.js
     end
