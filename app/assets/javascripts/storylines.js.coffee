@@ -27,4 +27,25 @@
 # Clicking the pen icon results in a field becoming editable as well
 $ ->
   $('.storyline_pen').click ->
-    $(this).parent().parent().find('.storyline a').click()
+    $(this).parent().parent().find('.storyline_actions a:eq(0)').click()
+    
+$('section').live 'click', ->
+  $('section').removeClass('active')
+  $(this).addClass('active')
+
+$(document).click (e) ->
+  $('section').removeClass('active') unless $(e.target).is("section") or $(e.target).parents().is("section")
+  
+$(document).keydown (e) ->
+  if $('.active').length > 0 and not $(e.target).is('input')
+    if e.keyCode == 39 #right
+      $('.active .right').click()
+    else if e.keyCode == 37 #left
+      $('.active .left').click()
+    else if e.keyCode == 40 #down
+      $('.active').next().click()
+    else if e.keyCode == 38 #up
+      $('.active').prev().click()
+  else if $('.active').length == 0
+    $('section:eq(0)').click()
+    

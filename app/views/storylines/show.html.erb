@@ -6,7 +6,7 @@
   <%= render :partial => 'storyline', :locals => { :storyline => @storyline, :extraclass => ' story_top' }%>
   <%= render 'continuations' %>
   <footer>
-    <%= link_to 'Back', storylines_path %> | 
+    <%= link_to 'Back', storylines_path %> · 
     <%= link_to 'Surprise me!', storyline_path(@storyline) %>
   </footer>
 </div>

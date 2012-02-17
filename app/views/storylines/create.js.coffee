@@ -1,3 +1,7 @@
+<% if @storyline.errors.any? %>
+notice 'Hey! No blank lines or invalid input!'
+setTimeout (-> location.reload()), 1500
+<% else %>
 ids_up_to = ($section, exclude = false) ->
   last_id = $section.attr('data-id')
   rest_ids = ""
@@ -13,3 +17,4 @@ ids_up_to = ($section, exclude = false) ->
 
 ids = ids_up_to $('form').parent().parent().parent()
 location.href = "<%= escape_javascript(storyline_path(@start_id)) %>/" + ids + <%= @storyline.id %>
+<% end %>

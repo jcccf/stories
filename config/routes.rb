@@ -10,8 +10,13 @@ Stories::Application.routes.draw do
   resources :feedbacks
   resources :users
   resources :storylines do
-    get 'new_continue'
-    get 'upvote'
+    member do
+      get 'new_continue'
+      get 'upvote'
+    end
+    collection do
+      get 'new_random'
+    end
   end
   
   match 'storylines/:id/:other_ids' => 'storylines#show'

@@ -13,10 +13,11 @@
 
 <div class="field">
   <!-- <%= f.label :line %><br /> -->
-  <%= f.text_field :line, :size => 60, :placeholder => "Then what?" %><%= f.submit 'Add' %>
+  <%= f.text_field :line, :size => 56, :placeholder => "Then what?" %>&nbsp;<%= f.submit 'Add' %>
 </div>
 <div class="field">
   <%= f.hidden_field :prev %>
+  <%= f.hidden_field :next %>
   <%= hidden_field_tag "start_id", @start_id %>
 </div>
 <% end %>

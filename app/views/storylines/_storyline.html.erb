@@ -1,38 +1,34 @@
 <section data-id="<%= storyline.id %>">
   <div class="storyline_wrapper">
-  <div class="storyid"><%= storyline.id %></div>
-  <div class="storytools">
-    <div class="reload">
-      <%= link_to image_tag("root.png", :border => 0, 'data-tooltip' => 'Rebranch'), storyline_path(storyline, :next => storyline.next), :remote => true %>
+    <div class="storyid"><%= storyline.id %></div>
+    <div class="storytools">
+      <div class="voting">
+        <% if @current_user %>
+        <%= link_to image_tag("upvote_red.png", :border => 0), storyline_upvote_path(storyline), :remote => true %>    
+        <% else %>
+          <%= image_tag("upvote.png", :border => 0, :class => 'must_login') %>
+        <% end %>
+        <span class="callout">
+          <span class="votes"><%= storyline.upvotes_zero %></span>
+          <i class="triangle triborder"></i>
+          <i class="triangle"></i>
+        </span>
+      </div>
     </div>
-    <div class="voting">
-      <% if @current_user %>
-      <%= link_to image_tag("upvote_red.png", :border => 0), storyline_upvote_path(storyline), :remote => true %>    
-      <% else %>
-        <%= image_tag("upvote.png", :border => 0, :class => 'must_login') %>
-      <% end %>
-      <span class="callout">
-        <span class="votes"><%= storyline.upvotes_zero %></span>
-        <i class="triangle triborder"></i>
-        <i class="triangle"></i>
-      </span>
-    </div>
-  </div>
     
     <div class="storyline_pen"><%= image_tag("pen.png", :border => 0, 'data-tooltip' => 'Edit line') %></div>
-    <div class="storyline<%= extraclass %>" data-id="<%= storyline.id %>">
-      <%= link_to storyline.line, edit_storyline_path(storyline, :start_id => @storyline.id, :prev => storyline.prev, :next => storyline.next), :remote => true %>
-      <!-- <%= best_in_place storyline, :line, :type => :textarea, :html_attrs => { :size => 100 } %> -->
+    <div class="storyline<%= extraclass %>" data-id="<%= storyline.id %>"><%= storyline.line %></div>
+    
+    <div class="storyline_actions">
+      <%= link_to 'Edit this line', edit_storyline_path(storyline, :start_id => @storyline.id, :prev => storyline.prev, :next => storyline.next), :remote => true %> · 
+      <%= link_to 'Add line after', new_continue_storyline_path(storyline, :start_id => @storyline.id, :next => storyline.next), :remote => true %> · 
+      <%= link_to 'Continue from here', new_continue_storyline_path(storyline, :start_id => @storyline.id), :remote => true %>
     </div>
+    <div class="storyins" data-id="<%= storyline.id %>"></div>
   </div>
-  <%= link_to storyline_new_continue_path(storyline, :start_id => @storyline.id), :remote => true, :class=>'new_continue' do %>
-    <div class="storyins_wrapper">
-      <div class="storyins" data-id="<%= storyline.id %>">
-        &gt;&gt;
-      </div>
-      <div class="storyins_hr">&nbsp;</div>
-    </div>
+  <% if not storyline.prev.blank? %>
+  <%= link_to image_tag("left.png", :class => 'left'), storyline_path(storyline.prev, :next => storyline, :branch => :prev), :remote => true %>
+    <%= link_to image_tag("right.png", :class => 'right'), storyline_path(storyline.prev, :next => storyline, :branch => :next), :remote => true %>
   <% end %>
 </section>
-<!-- <td><%= link_to 'Edit', edit_storyline_path(storyline) %></td> -->
 <!-- <td><%= link_to 'Delete', storyline, confirm: 'Are you sure?', method: :delete %></td> -->

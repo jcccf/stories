@@ -13,9 +13,13 @@
 
   <div class="field">
     <!-- <%= f.label :line %><br /> -->
-    <%= f.text_area :line, :size => 60, :placeholder => "Once upon a time..." %>
+    <%= f.text_area :line, :size => 60, :placeholder => @placeholder_text %>
   </div>
   <div class="actions">
+    <% if not @storyline.prev.blank? %>
+      <%= hidden_field_tag "randomize", "1" %>
+      <%= f.hidden_field :prev %>
+    <% end %>
     <%= f.submit "I'm done!" %>
   </div>
 <% end %>

@@ -73,14 +73,13 @@ input[type=submit] {
   border-radius: 5px;
   padding: 8px;
   background-color: #ddd;
-}
   
-input[type=submit]:hover {
-  background-color: #ccc;
-}
-  
-input[type=submit]:active {
-  background-color: #bbb;
+  &:hover {
+    background-color: #ccc;
+  }
+  &:active {
+    background-color: #bbb;
+  }
 }
 
 #user_panel {

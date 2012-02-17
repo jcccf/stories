@@ -1,6 +1,8 @@
 class Storyline < ActiveRecord::Base
   belongs_to :user
   
+  validates :line, :presence => true
+  
   attr_accessor :prev, :next # Id of next storyline in that particular story (not necessarily set)
   
   def prev_links
@@ -11,8 +13,8 @@ class Storyline < ActiveRecord::Base
     StorylineLinks.where('from_id = ?', self.id)
   end
   
-  def insert_before(sline)
-    sline.prev_links.update_all(:to_id => self.id)
+  def insert_before(sline, add=false)
+    sline.prev_links.update_all(:to_id => self.id) unless add
     StorylineLinks.new(:from_id => self.id, :to_id => sline.id).save
   end
   
@@ -43,7 +45,7 @@ class Storyline < ActiveRecord::Base
   # Return a random continuation from the current Storyline,
   # starting with the lines corresponding to start_ids if provided
   # exclude ids listed in exclusions (after start_ids)
-  def random_continuation(start_ids=[], exclusions=[])
+  def random_continuation(start_ids=[], exclusions=[], ordering=nil)
     puts "Excluding %d" % exclusions
     continuations, picked, old_picked = [], self, nil
     start_ids.each do |i|
@@ -52,6 +54,30 @@ class Storyline < ActiveRecord::Base
       Storyline.link(old_picked, picked)
       continuations << picked
     end
+    
+    # Get possible line after, in sorted id order
+    nexts = picked.next_links
+    if ordering and exclusions.size > 0 and nexts.size > 1
+      nexts.sort { |a,b| a.to_id <=> b.to_id }
+      pos = 0
+      while true do
+        break if exclusions.include? nexts[pos].to_id
+        pos += 1
+      end
+      old_picked = picked
+      picked = case ordering
+      when "prev"
+        nexts[(pos-1) % nexts.size].to_line
+      when "next"
+        nexts[(pos+1) % nexts.size].to_line
+      else
+        raise "Invalid Ordering"
+      end
+      Storyline.link(old_picked, picked)
+      continuations << picked
+    end
+    
+    # Order rest
     while true do
       nexts = picked.next_links.select {|n| not (exclusions.include? n.to_id) }
       puts nexts.inspect
@@ -64,7 +90,24 @@ class Storyline < ActiveRecord::Base
         break
       end  
     end
+    puts continuations.inspect
     continuations
+  end
+  
+  def random_previous
+    continuations, picked, old_picked = [self], self, nil
+    while true do
+      prevs = picked.prev_links
+      if prevs.size > 0
+        old_picked = picked
+        picked = prevs[rand(prevs.size)].from_line
+        Storyline.link(picked, old_picked)
+        continuations << picked
+      else
+        break
+      end
+    end
+    continuations.reverse
   end
   
   def upvotes_zero
@@ -85,6 +128,12 @@ class Storyline < ActiveRecord::Base
   def self.roots
     #Storyline.all
     Storyline.where(:root => true)
+  end
+  
+  def self.random
+    if (c = count) != 0
+      Storyline.find(:first, :offset => rand(c))
+    end
   end
   
   def self.link(first, second)
