@@ -25,10 +25,14 @@
       <%= link_to 'Continue from here', new_continue_storyline_path(storyline, :start_id => @storyline.id), :remote => true %>
     </div>
     <div class="storyins" data-id="<%= storyline.id %>"></div>
+    
+    <% if not storyline.prev.blank? and storyline.num_siblings > 0 %>
+    <%= link_to image_tag("left.png", :class => 'left', 'data-tooltip' => 'Previous Branch'), storyline_path(storyline.prev, :next => storyline, :branch => :prev), :remote => true %>
+      <%= link_to image_tag("right.png", :class => 'right', 'data-tooltip' => 'Next Branch'), storyline_path(storyline.prev, :next => storyline, :branch => :next), :remote => true %>
+    <% end %>
+
+    
   </div>
-  <% if not storyline.prev.blank? %>
-  <%= link_to image_tag("left.png", :class => 'left'), storyline_path(storyline.prev, :next => storyline, :branch => :prev), :remote => true %>
-    <%= link_to image_tag("right.png", :class => 'right'), storyline_path(storyline.prev, :next => storyline, :branch => :next), :remote => true %>
-  <% end %>
+
 </section>
 <!-- <td><%= link_to 'Delete', storyline, confirm: 'Are you sure?', method: :delete %></td> -->

@@ -15,6 +15,21 @@
   transition:opacity 0.5s ease-in;
 }
 
+@mixin color_transition {
+  -webkit-transition:color 0.5s ease-in;  
+  -moz-transition:color 0.5s ease-in;  
+  -o-transition:color 0.5s ease-in;  
+  transition:color 0.5s ease-in;
+}
+
+@mixin bgcolor_transition {
+  -webkit-transition:background-color 0.5s ease-in;  
+  -moz-transition:background-color 0.5s ease-in;  
+  -o-transition:background-color 0.5s ease-in;  
+  transition:background-color 0.5s ease-in;
+}
+
+
 @mixin centralize {
   width: 600px;
   margin: auto;
@@ -22,14 +37,24 @@
 
 .storyline_root {
   @include centralize;
+  a {
+    color: black;
+  }
+  a:hover {
+    background-color: transparent;
+    color: #F2583E;
+    @include color_transition;
+  }
 }
 
 .story {
 
+  color: #2B3E42;
+
   section {
   
     a {
-      color: navy;
+      color: #A31E39;
       &:hover {
         color: white;
       }
@@ -38,7 +63,7 @@
     position: relative;
     img.left {
       position: absolute;
-      left: 20px;
+      left: -100px;
       top: 0;
       bottom: 0;
       margin: auto;
@@ -46,7 +71,7 @@
     }
     img.right {
       position: absolute;
-      right: 20px;
+      right: -130px;
       top: 0;
       bottom: 0;
       margin: auto;
@@ -57,8 +82,9 @@
     padding-bottom: 3px;
     &:hover {
       background-color: #f3f3f3;
+      @include bgcolor_transition;
       cursor: pointer;
-      
+            
       img.left, img.right {
         opacity: 0.2;
         @include opacity_transition;
@@ -70,25 +96,31 @@
       @include opacity_transition;
     }
     
-    
   }
   
   section.active {
     background-color: #f3f3f3;
+    .storyline {
+      color: black;
+    }
     .storyline_actions {
       display: block;
     }
     img.left, img.right {
       opacity: 0.2;
+      &:hover {
+        opacity: 1.0;
+        @include opacity_transition;
+      }
     }
   }
 
   .storyline_wrapper {
     @include centralize;
-    
+    position: relative;
     &:hover {
       .storyline {
-        color: orange;
+        /* color: orange; */
         .storyid {
           color: black;
         }
@@ -108,6 +140,21 @@
     
   }
   text-align: justify;
+  
+  #continue_ellipses {
+    text-align: center;
+    font-size: x-large;
+    font-weight: bold;
+    line-height: 15px;
+    opacity: 0.5;
+      
+    &:hover {
+      opacity: 1.0;
+      @include opacity_transition;
+      cursor: pointer;
+    }
+  }
+  
 }
 
 .story_top {
@@ -163,7 +210,7 @@ footer {
 }
 
 .storyid {
-  margin-right: -120px;
+  margin-right: -90px;
   float: right;
   color: white;
   font-size: smaller;
@@ -175,7 +222,7 @@ footer {
 
 .storytools {
   width: 75px;
-  margin-right: -90px;
+  margin-right: -70px;
   float: right;
   opacity: 0.1;
   -webkit-transition:opacity 0.5s ease-in;  

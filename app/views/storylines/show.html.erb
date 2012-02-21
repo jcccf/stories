@@ -5,6 +5,7 @@
 <div class="story">
   <%= render :partial => 'storyline', :locals => { :storyline => @storyline, :extraclass => ' story_top' }%>
   <%= render 'continuations' %>
+  <div id="continue_ellipses"><span data-tooltip="Continue story">...</span></div>
   <footer>
     <%= link_to 'Back', storylines_path %> · 
     <%= link_to 'Surprise me!', storyline_path(@storyline) %>

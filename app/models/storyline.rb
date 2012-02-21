@@ -5,6 +5,23 @@ class Storyline < ActiveRecord::Base
   
   attr_accessor :prev, :next # Id of next storyline in that particular story (not necessarily set)
   
+  def siblings
+    if not @sibs
+      raise "Prev not set for %s" % self.line unless self.prev
+      @sibs = StorylineLinks.where('from_id = ?', self.prev).select { |n| n.to_id != self.id }
+      @sibs_num = @sibs.size
+    end
+    @sibs
+  end
+  
+  def num_siblings
+    if not @sibs_num
+      raise "Prev not set for %s" % self.line unless self.prev
+      @sibs_num = StorylineLinks.where('from_id = ?', self.prev).size - 1
+    end
+    @sibs_num
+  end
+  
   def prev_links
     StorylineLinks.where('to_id = ?', self.id)
   end

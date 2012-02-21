@@ -11,7 +11,8 @@ $(document).click (e) ->
 $('[data-tooltip]').live {
   mouseenter: (->
     pos = $(this).offset()
-    $('#tooltip').css('top', (pos.top-40)+"px").css('left', (pos.left-12)+"px").show()
+    widthoffset = $(this).width()/2
+    $('#tooltip').css('top', (pos.top-40)+"px").css('left', (pos.left-21+widthoffset)+"px").show()
     $('#tooltip_text').html $(this).attr('data-tooltip')
   ),
   mouseleave: (->

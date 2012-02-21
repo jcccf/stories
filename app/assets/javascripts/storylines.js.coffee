@@ -28,6 +28,10 @@
 $ ->
   $('.storyline_pen').click ->
     $(this).parent().parent().find('.storyline_actions a:eq(0)').click()
+  $('#continue_ellipses').click (e) ->
+    $('section').last().addClass('active')
+    $('section').last().find('.storyline_actions a:eq(2)').click()
+    e.stopPropagation() # Strange, why is this required?
     
 $('section').live 'click', ->
   $('section').removeClass('active')
@@ -48,4 +52,3 @@ $(document).keydown (e) ->
       $('.active').prev().click()
   else if $('.active').length == 0 and not $(e.target).is('input')
     $('section:eq(0)').click()
-    
