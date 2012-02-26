@@ -1,0 +1,38 @@
+<h2><%= link_to "Storeys", storylines_path %></h2>
+
+<%= javascript_include_tag "processing" %>
+<script>
+$(document).ready(function() {
+  tId = setTimeout(function(){ // Delay 0.5s to allow processing to load
+      
+    var pjs = Processing.getInstanceById('vis');
+      
+    function setProcessingGraph(node, lines) {
+      $.each(lines, function(idx, line) {
+        console.log(line['line']);
+        var newNode = new pjs.TextNode(line['line']);
+        node.add_next(newNode);
+        if (line['lines'].length > 0) {
+          setProcessingGraph(newNode, line['lines']);
+        }
+      });
+    }
+      
+    $.getJSON("<%= storyline_path(@storyline, :format => 'json') %>", function(data) {
+      pjs.getRoot().set_text(data['line']);
+      setProcessingGraph(pjs.getRoot(), data['lines']);
+    });
+      
+  }, 500);
+});
+  
+</script>
+
+<div style="text-align: center">
+<canvas id="vis" data-processing-sources="<%= asset_path 'vis.pde' %>"></canvas>
+</div>
+
+  <footer>
+    <%= link_to 'Back', storylines_path %> · 
+    <%= link_to 'Story View', @storyline %>
+  </footer>

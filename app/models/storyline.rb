@@ -138,6 +138,14 @@ class Storyline < ActiveRecord::Base
     self.save
   end
   
+  def json_continuation
+    datum = { :id => self.id, :line => self.line }
+    datum[:lines] = next_links.map do |link|
+      Storyline.find(link.to_id).json_continuation()
+    end
+    datum
+  end
+  
   #
   # Class Methods
   #

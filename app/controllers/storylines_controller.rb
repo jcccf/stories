@@ -29,8 +29,15 @@ class StorylinesController < ApplicationController
     end
     respond_to do |format|
       format.html # show.html.erb
-      format.json { render json: @storyline }
+      format.json { render json: @storyline.json_continuation }
       format.js
+    end
+  end
+  
+  def graph
+    @storyline = Storyline.find(params[:id])
+    respond_to do |format|
+      format.html
     end
   end
 
