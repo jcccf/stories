@@ -58,7 +58,7 @@ void setup() {
   textFont(fontA, 24);
   graph = new TextNode("A soft alligator is loading this graph...");
   //noLoop();
-  frameRate(15);
+  frameRate(20);
   stroke(255,114,0);
   strokeWeight(2);
   fill(0);
@@ -115,7 +115,7 @@ class LayoutManager {
       if (node.get_parent() != null) {
         node.get_parent().move_further();
       }
-      r += 2;
+      r += 4;
       node.rdist = r;
       x = int(origin.x + r * cos(theta));
       y = int(origin.y + r * sin(theta));
@@ -145,14 +145,13 @@ class LayoutManager {
       angle_offset = node.theta;
     }
     
-    // TODO discover angles which you shouldn't use
     for (int i = 0; i < total_num; i++) {
       TextNode child_node = node.next_lines().get(i);
-      float angle = angle_offset + (i+index_offset) * (2*PI/total_num);
+      float angle = PI + angle_offset + (i+index_offset) * (2*PI/(total_num+index_offset)); // + PI because we want it relative to the child, not the parent
       if (angle > 2*PI) {
         angle -= 2*PI;
       }
-      float radius = node.get_radius() + child_node.get_radius();
+      float radius = node.get_radius() + child_node.get_radius() + ((i % 2) * 10 * total_num);
       set_location_polar(child_node, location, radius, angle);
       child_node.draw_line_from(location);
     }
@@ -226,11 +225,10 @@ class TextNode {
     int num_chars = 1;
     String[] words = split(this.line_text, " ");
     String tempString = this.line_text.substring(0, num_chars);
-    while (textWidth(tempString) < 1.6 * 24 * ceil(this.line_text.length()/(num_chars-0.0))) {
+    while (textWidth(tempString) < 1.6 * 24 * ceil(this.line_text.length()/(num_chars-0.0)) && num_chars <= this.line_text.length()) {
       num_chars++;
       tempString = this.line_text.substring(0, num_chars);
     }
-    this.num_chars = num_chars;
     this.line_text_splits = new ArrayList(); 
     this.twidth = 0;
     
@@ -291,9 +289,9 @@ class TextNode {
     arc(x, y, this.diameter, this.diameter, arc_start, arc_end);
     strokeWeight(this.stroke_weight);
     ellipse(x, y, this.diameter, this.diameter);
-    
-    
+        
     fill(0, 0, 0);
+    // text(this.theta, x, y);
     for (int i = 0; i < this.line_text_splits.size(); i++) {
       text(this.line_text_splits.get(i), x-this.twidth/2, y+(i+1)*24-(this.theight/2));      
     }
@@ -302,7 +300,7 @@ class TextNode {
   void move_further() {
     if (this.parent != null && this.parent.get_location() != null) {
       Point par_loc = this.parent.get_location();
-      rdist += 4;
+      rdist += 8;
       this.location.x = int(par_loc.x + rdist * cos(theta));
       this.location.y = int(par_loc.y + rdist * sin(theta));
     }
