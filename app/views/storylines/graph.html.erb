@@ -12,6 +12,7 @@ $(document).ready(function() {
         console.log(line['line']);
         var newNode = new pjs.TextNode(line['line']);
         node.add_next(newNode);
+        newNode.set_parent(node);
         if (line['lines'].length > 0) {
           setProcessingGraph(newNode, line['lines']);
         }
