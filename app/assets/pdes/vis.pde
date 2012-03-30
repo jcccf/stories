@@ -1,4 +1,58 @@
 //
+// Helper Drawing Functions
+//
+void dashedLine(int dashWidth, int dashSpacing, float x1, float y1, float x2, float y2) {
+  int steps = 200;
+  int dashPeriod = dashWidth + dashSpacing;
+  boolean lastDashed = false;
+  float theta = atan2((y2-y1)/(x2-x1));
+  for(int i = 0; i < steps; i++) {
+    boolean curDashed = (i % dashPeriod) < dashWidth;
+    if(curDashed && !lastDashed) {
+      beginShape();
+    }
+    if(!curDashed && lastDashed) {
+      endShape();
+    }
+    if(curDashed) {
+      vertex(x1 + (x2-x1)* i/steps, y1 + (y2-y1) * i/steps);
+    }
+    lastDashed = curDashed;
+  }
+  if(lastDashed) {
+    endShape();
+  }
+}
+
+// Modified from http://openprocessing.org/sketch/28215
+void dashedCircle(float radius, int dashWidth, int dashSpacing, int x, int y) {
+    fill(255, 255, 255);
+    strokeWeight(0.1);
+    ellipse(x, y, radius*2, radius*2);
+    strokeWeight(5);
+    int steps = 200;
+    int dashPeriod = dashWidth + dashSpacing;
+    boolean lastDashed = false;
+    for(int i = 0; i < steps; i++) {
+      boolean curDashed = (i % dashPeriod) < dashWidth;
+      if(curDashed && !lastDashed) {
+        beginShape();
+      }
+      if(!curDashed && lastDashed) {
+        endShape();
+      }
+      if(curDashed) {
+        float theta = map(i, 0, steps, 0, TWO_PI);
+        vertex(cos(theta) * radius + x, sin(theta) * radius + y);
+      }
+      lastDashed = curDashed;
+    }
+    if(lastDashed) {
+      endShape();
+    }
+}
+
+//
 // To enable dragging
 //
 
@@ -17,6 +71,18 @@ float scaley = 1.0;
 //       scaley -= 0.02;
 //   }
 // }
+
+void zoom(float amount) {
+  scaley += amount;
+}
+
+void moveX(float amount) {
+  x += amount;
+}
+
+void moveY(float amount) {
+  y += amount;
+}
 
 void mousePressed() {
   x_offset_drag = mouseX - x;
@@ -64,6 +130,28 @@ void setup() {
   fill(0);
 }
 
+void mouseClicked() {
+  redraw();
+  float realX = (mouseX-x-width/2) / scaley;
+  float realY = (mouseY-y-height/2) / scaley;
+  TextNode n = find_node(new Point(realX, realY), graph);
+  if (n != null) {
+    editNode(n);
+  }
+  // alert(realX+" "+realY+"hello!");
+}
+
+// Determine if there exists a TextNode that the target point landed within and return the TextNode
+TextNode find_node(Point target, TextNode n) {
+  Point loc = n.get_location();
+  if (sqrt(pow(loc.x-target.x, 2) + pow(loc.y-target.y, 2)) <= n.get_radius()) return n;
+  for (int i = 0; i < n.next_lines().size(); i++) {
+    TextNode poss_node = find_node(target, n.next_lines().get(i));
+    if (poss_node != null) return poss_node;
+  }
+  return null;
+}
+
 void draw() {
   background(245,245,245);
   translate(width/2+x,height/2+y);
@@ -80,12 +168,6 @@ void draw_textnode(LayoutManager lm, TextNode n) {
   for (int i = 0; i < n.next_lines().size(); i++) {
     draw_textnode(lm, n.next_lines().get(i));
   }
-}
-
-void mouseClicked() {
-  //points.add(new Point(mouseX,mouseY));
-  redraw();
-  alert(mouseX+" "+mouseY+"hello!");
 }
 
 class LayoutManager {
@@ -119,8 +201,6 @@ class LayoutManager {
       node.rdist = r;
       x = int(origin.x + r * cos(theta));
       y = int(origin.y + r * sin(theta));
-      console.log(origin.x);
-      console.log(origin.y);
     }
     
     node.set_location(x, y);
@@ -175,6 +255,7 @@ class Point {
 
 class TextNode {
   String line_text;
+  int elapsed;
   ArrayList nexts;
   TextNode parent;
   int num_chars;
@@ -191,15 +272,26 @@ class TextNode {
   int stroke_weight;
   float arc_start;
   float arc_end;
+  boolean is_dashed;
   
-  TextNode(String line_text) { 
+  TextNode(String line_text) {
+    this(line_text, 0, false);
+  }
+  
+  TextNode(String line_text, int elapsed) {
+    this(line_text, elapsed, false);
+  }
+  
+  TextNode(String line_text, int elapsed, boolean is_dashed) { 
     this.line_text = line_text;
+    this.elapsed = elapsed;
+    this.is_dashed = is_dashed;
     this.nexts = new ArrayList();
     location = null; 
     stroke_color = color(random(255), random(255), random(255));
-    stroke_weight = 2;
+    stroke_weight = 3;
     arc_start = PI*random(-1, 1);
-    arc_end = PI*random(-1, 1);
+    arc_end = arc_start + 2*PI*(60/this.elapsed); //PI*random(-1, 1);
     if (arc_start > arc_end) {
       float temp = arc_start;
       arc_start = arc_end;
@@ -207,6 +299,7 @@ class TextNode {
     }
     setup();
   }
+  
   TextNode[] next_lines() { return nexts; }
   void add_next(TextNode node) { this.nexts.add(node); }
   String get_text() { return this.line_text }
@@ -222,6 +315,7 @@ class TextNode {
   void set_stroke_color(color c) { this.stroke_color = c }
   
   void setup() {
+    textFont(loadFont("Helvetica"), 24);
     int num_chars = 1;
     String[] words = split(this.line_text, " ");
     String tempString = this.line_text.substring(0, num_chars);
@@ -250,10 +344,9 @@ class TextNode {
       if (num_less < num_extra) {
         num_extra = -1-num_less;
       }
-      
-      
+
       String s = this.line_text.substring(start_index, start_index+num_chars+num_extra);
-      this.twidth = max(this.twidth, textWidth(s));
+      this.twidth = max(this.twidth, textWidth(s)); // This line relies on the text font, so don't change it!
       this.line_text_splits.add(s);
       line_num++;
       start_index += num_chars + num_extra;
@@ -263,6 +356,11 @@ class TextNode {
     this.theight = this.num_lines * 24;
     this.diameter = sqrt(this.twidth*this.twidth + this.theight*this.theight)+8;
     this.radius = this.diameter/2;
+    // console.log(num_chars);
+    // console.log(this.num_lines);
+    // console.log(this.theight);
+    // console.log(this.twidth);
+    // console.log(this.diameter);
   }
   
   void draw(int x, int y) {
@@ -273,7 +371,12 @@ class TextNode {
   void draw_line_from(Point origin) {
     stroke(this.stroke_color);
     strokeWeight(this.stroke_weight);
-    line(origin.x, origin.y, location.x, location.y);
+    if (this.is_dashed == true) {
+      dashedLine(6, 4, origin.x, origin.y, location.x, location.y);
+    }
+    else {
+      line(origin.x, origin.y, location.x, location.y);
+    }
   }
 
   void draw() {
@@ -283,18 +386,47 @@ class TextNode {
     int start_index = 0;
     int line_num = 0;
     
-    fill(277, 277, 277);
-    stroke(this.stroke_color);
-    strokeWeight(this.stroke_weight*4);
-    arc(x, y, this.diameter, this.diameter, arc_start, arc_end);
-    strokeWeight(this.stroke_weight);
-    ellipse(x, y, this.diameter, this.diameter);
+    if (this.is_dashed == true && this.line_text_splits.size() == 1 && this.line_text_splits.get(0).length() == 1) {
+      textFont(loadFont("Helvetica-Bold"), 36);
+      this.radius = 24;
+      this.diameter = 48;
+    }
+    else {
+      textFont(loadFont("Helvetica"), 24);
+    }
+    
+    if (this.is_dashed == true) {
+      fill(277, 277, 277);
+      strokeWeight(0.01);
+      ellipse(x, y, this.diameter, this.diameter);
+      stroke(this.stroke_color);
+      strokeWeight(this.stroke_weight);
+      dashedCircle(this.radius, 6, 8, x, y);
+    }
+    else {
+      fill(277, 277, 277);
+      stroke(this.stroke_color);
+      strokeWeight(this.stroke_weight*4);
+      arc(x, y, this.diameter, this.diameter, arc_start, arc_end);
+      strokeWeight(this.stroke_weight);
+      ellipse(x, y, this.diameter, this.diameter);
+    }
+    
+    if (this.is_dashed == true && this.line_text_splits.size() == 1 && this.line_text_splits.get(0).length() == 1) {
+      x -= 4;
+      y -= 2;
+    }
         
     fill(0, 0, 0);
     // text(this.theta, x, y);
     for (int i = 0; i < this.line_text_splits.size(); i++) {
       text(this.line_text_splits.get(i), x-this.twidth/2, y+(i+1)*24-(this.theight/2));      
     }
+    // text(this.radius, x+10, y+10);
+    // text(this.line_text, x+10, y+30);
+    // text(has_parent(), x, y);
+    // text(location.x, x+100, y);
+    // text(location.y, x+150, y);
   }
   
   void move_further() {

@@ -138,12 +138,21 @@ class Storyline < ActiveRecord::Base
     self.save
   end
   
-  def json_continuation
+  def json_continuation_helper(seen_ids)
     datum = { :id => self.id, :line => self.line }
-    datum[:lines] = next_links.map do |link|
-      Storyline.find(link.to_id).json_continuation()
+    datum[:lines] = []
+    next_links.each do |link|
+      if !seen_ids.has_key?(link.to_id)
+        seen_ids[link.to_id] = true
+        datum[:lines] << Storyline.find(link.to_id).json_continuation_helper(seen_ids)
+      end
     end
     datum
+  end
+  
+  def json_continuation
+    # TODO This is kind of broken right now, need to show actual graph structure in the future
+    json_continuation_helper({})
   end
   
   #

@@ -270,3 +270,40 @@ footer {
   }
   
 }
+
+#vis_wrapper {
+  width: 950px;
+  text-align: center;
+  margin: auto;
+}
+  
+#vis_controls {
+  float: right;
+}
+#vis_controls div {
+  border: 1px solid gray;
+  padding: 4px;
+  margin: 4px;
+  border-radius: 4px;
+  font-weight: bold;
+  cursor: pointer;
+}
+#edit_dialog {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  margin-left: -200px;
+  width: 400px;
+  margin-top: -100px;
+  height: 200px;
+  padding: 10px;
+  border: 1px solid gray;
+  border-radius: 5px;
+  background-color: #fcfcfc;
+  display: table;
+}
+#edit_dialog div {
+  display: table-cell;
+  vertical-align: middle;
+  text-align: center;
+}
