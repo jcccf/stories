@@ -1,108 +1,39 @@
-<h2><%= link_to "Storeys", storylines_path %></h2>
+<h2 class="floating_header"><%= link_to "Storeys", storylines_path %></h2>
 
-<%= javascript_include_tag "processing" %>
-<script>
-$(document).ready(function() {
-    
-  tId = setTimeout(function(){ // Delay 0.5s to allow processing to load
-      
-    var pjs = Processing.getInstanceById('vis');
-      
-    function setProcessingGraph(node, lines) {
-      $.each(lines, function(idx, line) {
-        console.log(line['line']);
-        var newNode = new pjs.TextNode(line['line'], line['elapsed']);
-        var dashedNode = new pjs.TextNode('+', 0, true);
-        newNode.add_next(dashedNode);
-        node.add_next(newNode);
-        newNode.set_parent(node);
-        if (line['lines'].length > 0) {
-          setProcessingGraph(newNode, line['lines']);
-        }
-      });
+<div id="viz_wrapper"></div>
+
+<%= javascript_include_tag "d3" %>
+
+<script type="text/javascript">
+var activeNode = null;
+$().ready(function() {  
+  $('#edit_dialog').hide();
+  $('#edit_dialog_button').click(function() {
+    if (activeNode.dashed) {
+      jnodes.push({"name": $('#edit_dialog_text').val(), "group": jnodes[activeNode.parentIndex].group+1, "stroke": 2});
+      jlinks.push({"source": activeNode.parentIndex, "target": jnodes.length-1, "value":1});
     }
-      
-    $.getJSON("<%= storyline_path(@storyline, :format => 'json') %>", function(data) {
-      pjs.getRoot().set_text(data['line']);
-      var dashedNode = new pjs.TextNode('+', 0, true);
-      pjs.getRoot().add_next(dashedNode);
-      setProcessingGraph(pjs.getRoot(), data['lines']);
-    });
-      
-    //
-    // Zoom-in and zoom-out functionality (keyboard and buttons)
-    //
-    $(document).keydown(function(e) {
-      if (e.which == 187) {
-        $('#zoom_in').mousedown();
-      }
-      else if (e.which == 189) {
-        $('#zoom_out').mousedown();
-      }
-      else if (e.which == 37){
-        doContinuousPan = true;
-        continuousPan('x', -2);
-      }
-      else if (e.which == 38){
-        doContinuousPan = true;
-        continuousPan('y', -2);          
-      }
-      else if (e.which == 39){
-        doContinuousPan = true;
-        continuousPan('x', 2);          
-      }
-      else if (e.which == 40){
-        doContinuousPan = true;
-        continuousPan('y', 2);          
-      }
-    });
-    $(document).keyup(function(e) {
-      if (e.which == 187 || e.which == 189) {
-        $('#zoom_in').mouseup();
-      }
-      else if (e.which == 37 || e.which == 38 || e.which == 39 || e.which == 40) {
-        doContinuousPan = false;
-      }
-    });
-    var doContinuousPan = false;
-    function continuousPan(direction, amount) {
-      if (direction == 'x') { pjs.moveX(amount); }
-      else { pjs.moveY(amount); }
-      if (doContinuousPan) {
-        setTimeout(function() { 
-          if (amount < 2) { continuousPan(direction, amount*1.1); }
-          else { continuousPan(direction, amount); }
-        }, 50);
-      }
+    else{
+      activeNode.name = $('#edit_dialog_text').val();
+      // Update
+      $.post("<%= graph_update_storylines_path %>",
+        { "id": activeNode.real_id, "line": $('#edit_dialog_text').val() },
+        function(data) {} );
     }
-    var doContinuousZoom = false;
-    function continuousZoom(amount) {
-      pjs.zoom(amount);
-      if (doContinuousZoom) {
-        setTimeout(function() { continuousZoom(amount*1.05) }, 50);
-      }
-    }
-    $('#zoom_in').mousedown(function() {
-      doContinuousZoom = true;
-      continuousZoom(0.01);
-    });
-    $('#zoom_in, #zoom_out').mouseup(function() { doContinuousZoom = false; });
-    $('#zoom_out').mousedown(function() {
-      doContinuousZoom = true;
-      continuousZoom(-0.01);
-    });
-      
-  }, 500);
+    $('#edit_dialog').hide();
+    supdate();
+  });
 });
-  
-//
-// Editing Functions
-//
-var dialog_count = 0; // Helps to hide dialog when clicking outside of it, because you can't prevent click propagation in processing.js
-var currentNode = null;
-function editNode(node) {
-  currentNode = node;
-  $('#edit_node_field').val(currentNode.get_text());
+function openEditDialog(d) {
+  activeNode = d;
+  if (activeNode.dashed) {
+    $('#edit_dialog_button').val("Add");
+    $('#edit_dialog_text').val("");   
+  }
+  else {
+    $('#edit_dialog_button').val("Edit");
+    $('#edit_dialog_text').val(d.name);    
+  }
   $('#edit_dialog').show();
   dialog_count = 0;
   $(document).bind('click.graph_dialog', function(e) {
@@ -113,34 +44,168 @@ function editNode(node) {
     dialog_count++;
   });
 }
-$().ready(function() {
-  $('#edit_dialog').hide();
-  $('#edit_node_submit').click(function(e) {
-    $('#edit_dialog').hide();
-    if (currentNode != null) {
-      currentNode.set_text($('#edit_node_field').val());
-    }
-    else {
-      alert("blank!");
-    }
-  });
+
+// Original code courtesy of http://bl.ocks.org/1846692
+var w = 1280,
+    h = 720,
+    color = d3.scale.category20(),
+    jnodes, jlinks,
+    link, node,
+    nodeCircles, nodePaths, linkObjs;
+var vis = d3.select("#viz_wrapper").append("svg:svg")
+    .attr("width", "100%")
+    .attr("height", "100%");
+
+// Pan and Zoom
+// http://groups.google.com/group/d3-js/browse_thread/thread/346e75ba083fba4b
+vis.append("rect") 
+  .attr("width", "100%") 
+  .attr("height", "100%") 
+  .attr("fill", "#fcfcfc") 
+  .call(d3.behavior.zoom() 
+    .on("zoom", function() { 
+      vis.attr("transform", "translate(" + d3.event.translate + 
+        ")scale(" + d3.event.scale + ")"); 
+   })); 
+vis = vis.append("g"); 
+
+// Force Layout
+var force = self.force = d3.layout.force()
+  .gravity(.05)
+  .distance(function(d) { return 100 * d.value })
+  .charge(function(d) { return -5000/(d.group/2+1); })
+  .size([w, h]);
+force.on("tick", function() {
+  link.attr("x1", function(d) { return d.source.x; })
+      .attr("y1", function(d) { return d.source.y; })
+      .attr("x2", function(d) { return d.target.x; })
+      .attr("y2", function(d) { return d.target.y; });
+  node.attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; });
 });
-    
+
+// Ajax Call
+d3.json("<%= storyline_path(@storyline, :format => 'json') %>", function(json) {
+  jnodes = json.nodes;
+  jlinks = json.links;
+  supdate();
+});
+
+function supdate() {
+  force.nodes(jnodes).links(jlinks).start(); // Restart force layout
+
+  // Link Additions
+  linkObjs = vis.selectAll("line.link")
+    .data(jlinks)
+    .enter().insert("svg:line", ":first-child");
+  linkUpdateHelper();
+  vis.selectAll("line.link").data(jlinks).exit().remove();
+  
+  // Link Updates
+  linkObjs = vis.selectAll("line.link")
+    .data(jlinks)
+    .selectAll("line");
+  linkUpdateHelper();
+
+  // Node Additions
+  node = vis.selectAll("g.node")
+    .data(jnodes)
+    .enter().append("svg:g")
+    .attr("class", "node")
+    .call(force.drag);
+  nodeCircles = node.append("circle");
+  nodePaths = node.append("path");
+  updateHelper();
+  vis.selectAll("g.node").data(jnodes).exit().remove();
+  
+  // Node Updates
+  node = vis.selectAll("g.node")
+    .data(jnodes).call(force.drag);
+  nodeCircles = node.selectAll("circle");
+  nodePaths = node.selectAll("path");
+  updateHelper();
+
+  link = vis.selectAll("line.link");  
+  node = vis.selectAll("g.node");
+}
+
+function linkUpdateHelper() {
+  linkObjs.attr("class", "link")
+    .attr("x1", function(d) { return d.source.x; })
+    .attr("y1", function(d) { return d.source.y; })
+    .attr("x2", function(d) { return d.target.x; })
+    .attr("y2", function(d) { return d.target.y; });
+}
+
+function updateHelper() {
+  // Set Circle
+  nodeCircles
+    .attr("class", "circle")
+    .attr("r", 50)
+    .attr("fill", "white")
+    .attr("stroke", function(d) { return color(d.group); })
+    .attr("stroke-width", function(d) { return d.stroke+"px"; })
+    .attr("stroke-dasharray", function(d) { if (d.dashed) return "5 3"; } )
+    .on("click", openEditDialog);
+  
+  node.selectAll("text").remove(); // Clear all existing text
+  
+  // Set Text
+  node.each(function(d) {
+    var curr = d3.select(this);
+    var words = d.name.replace(/^\s+|\s+$/g,"").split(" ");
+    var lineArray = [];
+    var numWords = Math.sqrt(words.length) | 0 + 1;
+    var numLines = Math.ceil(words.length / numWords);
+    var fontSize = 16;
+    var yOffset = -numLines*fontSize/2;
+    if (d.dashed) {
+      fontSize = 24;
+      yOffset -= 9;
+    }
+    var textElt = curr.append("svg:text")
+     .attr("class", "nodetext")
+     .attr("dx", 0).attr("y", yOffset+"px")
+     .attr("text-anchor", "middle")
+     .style("font-size", fontSize+"px");
+    var index = 0;
+    while(index < words.length) {
+     var tempWords = "";
+     for (var j = 0; j < numWords; j++) {
+       if (j + index < words.length) {
+         tempWords += words[j+index]+" ";
+       }
+     }
+     var tempNode = textElt.append("svg:tspan").text(tempWords).attr("dy", "1em").attr("x", 0);
+     index += numWords;
+    }
+    d.radius = Math.max(textElt.node().getBBox().width, textElt.node().getBBox().height) / 2 + 8;
+  });
+   
+  // Set Real Radius (can only do this after we've determined how large the text box is)
+  node.selectAll("circle").attr("r", function(d) { return d.radius; } );
+   
+  // Set Arc
+  nodePaths
+    .attr("d", d3.svg.arc()
+     .innerRadius(function(d) { if (d.age) return d.radius+d.stroke+1; else return 0; })
+     .outerRadius(function(d) { if (d.age) return d.radius+d.stroke+3; else return 0; })
+     .startAngle(0).endAngle(function(d) { if (d.age) return Math.max(0, 1-d.age)*2*Math.PI; else return 0; }))
+    .style("fill", function(d) { return color(d.group); })
+    .style("stroke", function(d) { return color(d.group); });
+}
+
 </script>
 
-<div id="vis_wrapper">
-  <canvas id="vis" data-processing-sources="<%= asset_path 'vis.pde' %>"></canvas>
-  <div id="vis_controls">
-    <div id="zoom_in">+</div> <div id="zoom_out">-</div>
-  </div>
-</div>
 <div id="edit_dialog" class="edit_dialog">
   <div>
-    <input id="edit_node_field" /><input type="button" id="edit_node_submit" value="edit!" />
+    <form>
+    <textarea id="edit_dialog_text"></textarea><br />
+    <input type="button" id="edit_dialog_button" value="Edit" />
+    </form>
   </div>
 </div>
 
-<footer>
+<footer class="floating_footer">
   <%= link_to 'Back', storylines_path %> · 
   <%= link_to 'Story View', @storyline %>
 </footer>

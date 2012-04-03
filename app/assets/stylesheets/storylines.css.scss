@@ -271,8 +271,37 @@ footer {
   
 }
 
-#vis_wrapper {
-  width: 950px;
+
+.link { stroke: #ccc; }
+.nodetext { pointer-events: none; font: 10px sans-serif; }
+svg {
+  margin: auto;
+}
+#edit_dialog {
+  position: fixed;
+  background-color: white;
+  border: 1px solid #f0f0f0;
+  border-radius: 4px;
+  left: 50%;
+  top: 50%;
+  z-index: 999;
+  margin-top: -80px;
+  margin-left: -320px;
+  display: table;
+  width: 640px;
+  height: 160px;
+}
+#edit_dialog div{
+  display: table-cell;
+  vertical-align: middle;
+  text-align: center;
+}
+
+#edit_dialog_text {
+  height: 60px;
+}
+
+#viz_wrapper {
   text-align: center;
   margin: auto;
 }
@@ -288,22 +317,20 @@ footer {
   font-weight: bold;
   cursor: pointer;
 }
-#edit_dialog {
+
+.floating_footer {
   position: fixed;
   left: 50%;
-  top: 50%;
-  margin-left: -200px;
-  width: 400px;
-  margin-top: -100px;
-  height: 200px;
-  padding: 10px;
-  border: 1px solid gray;
-  border-radius: 5px;
-  background-color: #fcfcfc;
-  display: table;
+  margin-left: -100px;
+  width: 200px;
+  bottom: 10px;
 }
-#edit_dialog div {
-  display: table-cell;
-  vertical-align: middle;
-  text-align: center;
+
+.floating_header {
+  position: fixed;
+  z-index: 999;
+  left: 50%;
+  margin-left: -100px;
+  width: 200px;
+  top: 10px;
 }

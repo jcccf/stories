@@ -1,0 +1,146 @@
+<h2><%= link_to "Storeys", storylines_path %></h2>
+
+<%= javascript_include_tag "processing" %>
+<script>
+$(document).ready(function() {
+    
+  tId = setTimeout(function(){ // Delay 0.5s to allow processing to load
+      
+    var pjs = Processing.getInstanceById('vis');
+      
+    function setProcessingGraph(node, lines) {
+      $.each(lines, function(idx, line) {
+        console.log(line['line']);
+        var newNode = new pjs.TextNode(line['line'], line['elapsed']);
+        var dashedNode = new pjs.TextNode('+', 0, true);
+        newNode.add_next(dashedNode);
+        node.add_next(newNode);
+        newNode.set_parent(node);
+        if (line['lines'].length > 0) {
+          setProcessingGraph(newNode, line['lines']);
+        }
+      });
+    }
+      
+    $.getJSON("<%= storyline_path(@storyline, :format => 'json') %>", function(data) {
+      pjs.getRoot().set_text(data['line']);
+      var dashedNode = new pjs.TextNode('+', 0, true);
+      pjs.getRoot().add_next(dashedNode);
+      setProcessingGraph(pjs.getRoot(), data['lines']);
+    });
+      
+    //
+    // Zoom-in and zoom-out functionality (keyboard and buttons)
+    //
+    $(document).keydown(function(e) {
+      if (e.which == 187) {
+        $('#zoom_in').mousedown();
+      }
+      else if (e.which == 189) {
+        $('#zoom_out').mousedown();
+      }
+      else if (e.which == 37){
+        doContinuousPan = true;
+        continuousPan('x', -2);
+      }
+      else if (e.which == 38){
+        doContinuousPan = true;
+        continuousPan('y', -2);          
+      }
+      else if (e.which == 39){
+        doContinuousPan = true;
+        continuousPan('x', 2);          
+      }
+      else if (e.which == 40){
+        doContinuousPan = true;
+        continuousPan('y', 2);          
+      }
+    });
+    $(document).keyup(function(e) {
+      if (e.which == 187 || e.which == 189) {
+        $('#zoom_in').mouseup();
+      }
+      else if (e.which == 37 || e.which == 38 || e.which == 39 || e.which == 40) {
+        doContinuousPan = false;
+      }
+    });
+    var doContinuousPan = false;
+    function continuousPan(direction, amount) {
+      if (direction == 'x') { pjs.moveX(amount); }
+      else { pjs.moveY(amount); }
+      if (doContinuousPan) {
+        setTimeout(function() { 
+          if (amount < 2) { continuousPan(direction, amount*1.1); }
+          else { continuousPan(direction, amount); }
+        }, 50);
+      }
+    }
+    var doContinuousZoom = false;
+    function continuousZoom(amount) {
+      pjs.zoom(amount);
+      if (doContinuousZoom) {
+        setTimeout(function() { continuousZoom(amount*1.05) }, 50);
+      }
+    }
+    $('#zoom_in').mousedown(function() {
+      doContinuousZoom = true;
+      continuousZoom(0.01);
+    });
+    $('#zoom_in, #zoom_out').mouseup(function() { doContinuousZoom = false; });
+    $('#zoom_out').mousedown(function() {
+      doContinuousZoom = true;
+      continuousZoom(-0.01);
+    });
+      
+  }, 500);
+});
+  
+//
+// Editing Functions
+//
+var dialog_count = 0; // Helps to hide dialog when clicking outside of it, because you can't prevent click propagation in processing.js
+var currentNode = null;
+function editNode(node) {
+  currentNode = node;
+  $('#edit_node_field').val(currentNode.get_text());
+  $('#edit_dialog').show();
+  dialog_count = 0;
+  $(document).bind('click.graph_dialog', function(e) {
+    if (!$(e.target).parents().hasClass('edit_dialog') && dialog_count > 0) {
+      $('#edit_dialog').hide();
+      $(document).unbind('click.graph_dialog');
+    }
+    dialog_count++;
+  });
+}
+$().ready(function() {
+  $('#edit_dialog').hide();
+  $('#edit_node_submit').click(function(e) {
+    $('#edit_dialog').hide();
+    if (currentNode != null) {
+      currentNode.set_text($('#edit_node_field').val());
+    }
+    else {
+      alert("blank!");
+    }
+  });
+});
+    
+</script>
+
+<div id="vis_wrapper">
+  <canvas id="vis" data-processing-sources="<%= asset_path 'vis.pde' %>"></canvas>
+  <div id="vis_controls">
+    <div id="zoom_in">+</div> <div id="zoom_out">-</div>
+  </div>
+</div>
+<div id="edit_dialog" class="edit_dialog">
+  <div>
+    <input id="edit_node_field" /><input type="button" id="edit_node_submit" value="edit!" />
+  </div>
+</div>
+
+<footer>
+  <%= link_to 'Back', storylines_path %> · 
+  <%= link_to 'Story View', @storyline %>
+</footer>

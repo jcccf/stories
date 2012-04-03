@@ -29,7 +29,7 @@ class StorylinesController < ApplicationController
     end
     respond_to do |format|
       format.html # show.html.erb
-      format.json { render json: @storyline.json_continuation }
+      format.json { render json: @storyline.json_continuation_d3 }
       format.js
     end
   end
@@ -72,6 +72,12 @@ class StorylinesController < ApplicationController
     respond_to do |format|
       format.html
     end
+  end
+  
+  def graph_update
+    storyline = Storyline.find(params[:id])
+    storyline.line = params[:line]
+    storyline.save
   end
   
   # GET /storylines/1/upvote

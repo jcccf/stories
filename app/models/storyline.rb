@@ -155,6 +155,31 @@ class Storyline < ActiveRecord::Base
     json_continuation_helper({})
   end
   
+  
+  def json_continuation_d3
+    id_to_index, counter = {}, 0
+    data = { :nodes => [], :links => Set.new }
+    lines_to_examine = [[self, 0]]
+    while lines_to_examine.size > 0
+      line, group = lines_to_examine.shift
+      if !id_to_index.include? line.id
+        id_to_index[line.id] = counter
+        counter += 1
+        data[:nodes] << { :name => line.line, :group => group, :stroke => (group > 0) ? 2 : 4, :real_id => line.id }
+      end
+      line.prev_links.each do |link|
+        if id_to_index.include? link.from_id
+          data[:links] << { :source => id_to_index[link.from_id], :target => id_to_index[link.to_id], :value => 2 }
+        end
+      end
+      line.next_links.each do |link|
+        lines_to_examine << [link.to_line, group+1] unless id_to_index.include? link.to_id
+      end
+    end
+    data[:links] = data[:links].to_a
+    data
+  end
+  
   #
   # Class Methods
   #
