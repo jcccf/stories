@@ -166,10 +166,16 @@ class Storyline < ActiveRecord::Base
         id_to_index[line.id] = counter
         counter += 1
         data[:nodes] << { :name => line.line, :group => group, :stroke => (group > 0) ? 2 : 4, :real_id => line.id }
+        
+        # Add Plus
+        data[:nodes] << { :name => "+", :group => group, :stroke => 2, :real_id => line.id, :parentIndex => id_to_index[line.id], :dashed => true }
+        data[:links] << { :source => id_to_index[line.id], :target => id_to_index[line.id]+1, :value => 0.8 + ((line.line.size+50)/100) }
+        counter += 1
+        
       end
       line.prev_links.each do |link|
         if id_to_index.include? link.from_id
-          data[:links] << { :source => id_to_index[link.from_id], :target => id_to_index[link.to_id], :value => 2 }
+          data[:links] << { :source => id_to_index[link.from_id], :target => id_to_index[link.to_id], :value => 2 + (line.line.size/50) }
         end
       end
       line.next_links.each do |link|

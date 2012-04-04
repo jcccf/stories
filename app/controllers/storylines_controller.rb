@@ -74,6 +74,11 @@ class StorylinesController < ApplicationController
     end
   end
   
+  def graph_add
+    params[:storyline] = { :line => params[:line], :prev => params[:parent_id]}
+    create
+  end
+  
   def graph_update
     storyline = Storyline.find(params[:id])
     storyline.line = params[:line]
