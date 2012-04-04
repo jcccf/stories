@@ -18,5 +18,7 @@
 
 <%= render '/layouts/tooltip' %>
 
+<%= render('/layouts/ga') if Rails.env == 'production' %>
+
 </body>
 </html>
