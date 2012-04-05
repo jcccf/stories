@@ -271,7 +271,6 @@ footer {
   
 }
 
-
 .link { stroke: #ccc; }
 .nodetext { 
   pointer-events: none;
@@ -283,6 +282,9 @@ footer {
   -ms-user-select: none;
   user-select: none;
   }
+.circle:hover {
+  cursor: pointer;
+}
 svg {
   margin: auto;
 }
@@ -308,6 +310,22 @@ svg {
 
 #edit_dialog_text {
   height: 60px;
+}
+
+#edit_close_button {
+  cursor: pointer;
+  font-family: Helvetica;
+  font-size: 16px;
+  line-height: 28px;
+  position: absolute;
+  top: -15px;
+  right: -15px;
+  color: #ffffff;
+  background-color: #cfcfcf;
+  border: 2px solid #f0f0f0;
+  width: 30px;
+  height: 30px;
+  border-radius: 15px;
 }
 
 #viz_wrapper {
@@ -341,5 +359,16 @@ svg {
   left: 50%;
   margin-left: -100px;
   width: 200px;
-  top: 10px;
+  top: 0;
+  line-height: 60px;
+  font-size: 45px;
+}
+
+#graph_navigation {
+  position: fixed;
+  top: 15px;
+  left: 10px;
+  img:hover {
+    cursor: pointer;
+  }
 }

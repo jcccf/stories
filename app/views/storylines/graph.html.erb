@@ -57,6 +57,9 @@ function d3viz() {
       $('#edit_dialog').hide();
       supdate();
     });
+    $('#edit_close_button').click(function() {
+      $('#edit_dialog').hide();
+    });
   });
   function openEditDialog(d) {
     activeNode = d;
@@ -77,10 +80,7 @@ function d3viz() {
       $(document).unbind('click.graph_dialog');
     }
   }
-  if (isiPad) {
-    $("#viz_wrapper").bind('touchend', function(e) { alert("hi!"); hideDialog(e) });
-  }
-  else {
+  if (!isiPad) {
     $("#viz_wrapper").click(hideDialog);
   }
 
@@ -262,11 +262,15 @@ d3viz();
     <textarea id="edit_dialog_text"></textarea><br />
     <input type="button" id="edit_dialog_button" value="Edit" />
     </form>
+    <div id="edit_close_button">x</div>
   </div>
+</div>
+
+<div id="graph_navigation">
+  <div id="recenter"><%= image_tag("center.png", :border => 0) %></div>
 </div>
 
 <footer class="floating_footer">
   <%= link_to 'Back', storylines_path %> · 
-  <a id="recenter" href="#">Re-center</a> · 
   <%= link_to 'Story View', @storyline %>
 </footer>
