@@ -4858,12 +4858,12 @@ d3.behavior.zoom = function() {
     touches.forEach(function(t) { translate0[t.identifier] = location(t); });
     d3_eventCancel();
 
-    if ((touches.length === 1) && (now - touchtime < 500)) { // dbltap
-      var p = touches[0], l = location(touches[0]);
-      scaleTo(scale * 2);
-      translateTo(p, l);
-      dispatch(event.of(this, arguments));
-    }
+    // if ((touches.length === 1) && (now - touchtime < 500)) { // dbltap
+    //   var p = touches[0], l = location(touches[0]);
+    //   scaleTo(scale * 2);
+    //   translateTo(p, l);
+    //   dispatch(event.of(this, arguments));
+    // }
     touchtime = now;
   }
 
