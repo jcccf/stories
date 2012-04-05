@@ -5,6 +5,8 @@
 <%= javascript_include_tag "d3mod" %>
 
 <script>
+var isiPad = navigator.userAgent.match(/iPad/i) != null;
+
 function d3viz() {
   
   //
@@ -191,9 +193,13 @@ function d3viz() {
       .attr("fill", "white")
       .attr("stroke", function(d) { return color(d.group); })
       .attr("stroke-width", function(d) { return d.stroke+"px"; })
-      .attr("stroke-dasharray", function(d) { if (d.dashed) return "5 3"; } )
-      .on("click", openEditDialog)
-      .on("touchend", openEditDialog);
+      .attr("stroke-dasharray", function(d) { if (d.dashed) return "5 3"; } );
+    if (isiPad) {
+      nodeCircles.on("touchend", openEditDialog);
+    }
+    else {
+      nodeCircles.on("click", openEditDialog);
+    }
   
     node.selectAll("text").remove(); // Clear all existing text
   
