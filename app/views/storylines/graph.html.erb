@@ -12,7 +12,7 @@ function d3viz() {
   //
   // Add/Edit Nodes
   //
-  var activeNode = null;
+  var activeNode = null, click_time = 0;
   $().ready(function() {  
     $('#edit_dialog').hide();
     $('#edit_dialog_button').click(function() {
@@ -69,14 +69,19 @@ function d3viz() {
       $('#edit_dialog_text').val(d.name);    
     }
     $('#edit_dialog').show();
-    dialog_count = 0;
-    $(document).bind('click.graph_dialog', function(e) {
-      if (!$(e.target).parents().hasClass('edit_dialog') && dialog_count > 0) {
-        $('#edit_dialog').hide();
-        $(document).unbind('click.graph_dialog');
-      }
-      dialog_count++;
-    });
+    click_time = new Date().getTime();
+  }
+  function hideDialog(e) {
+    if (!$(e.target).parents().hasClass('edit_dialog') && new Date().getTime() - click_time > 200) {
+      $('#edit_dialog').hide();
+      $(document).unbind('click.graph_dialog');
+    }
+  }
+  if (isiPad) {
+    $(document).bind('touchend', hideDialog);
+  }
+  else {
+    $(document).click(hideDialog);
   }
 
   //
