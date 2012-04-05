@@ -75,8 +75,11 @@ class StorylinesController < ApplicationController
   end
   
   def graph_add
-    params[:storyline] = { :line => params[:line], :prev => params[:parent_id]}
-    create
+    @storyline = Storyline.new({ :line => params[:line], :prev => params[:parent_id] })
+    @first_line, @storyline, lines, ids = insert_lines @storyline
+    respond_to do |format|
+      format.json { render json: { :lines => lines, :ids => ids } }
+    end
   end
   
   def graph_update
@@ -115,6 +118,34 @@ class StorylinesController < ApplicationController
       format.js
     end
   end
+  
+  def insert_lines(the_storyline)
+    lines = TactfulTokenizer::Model.new.tokenize_text(the_storyline.line)
+    previous = Storyline.find(the_storyline.prev) if the_storyline.prev
+    next_last = the_storyline.next.blank? ? nil : Storyline.find(the_storyline.next) 
+    ids = []
+    
+    # Split into sentences and create separate storylines for each sentence
+    storyline, first_line = nil, nil
+    lines.each do |line|
+      storyline = Storyline.new(:line => line)
+      storyline.user = @current_user if @current_user
+      storyline.save
+      ids << storyline.id
+      if previous
+        storyline.insert_after(previous, true)
+      else
+        storyline.root = true
+        storyline.save
+      end
+      previous = storyline
+      first_line ||= storyline
+    end
+    storyline.insert_before(next_last, true) if next_last
+    storyline.save
+    
+    [first_line, storyline, lines, ids] # first line, last line, ids
+  end
 
   # POST /storylines
   # POST /storylines.json
@@ -122,26 +153,7 @@ class StorylinesController < ApplicationController
     @storyline = Storyline.new(params[:storyline])
     @start_id = params[:start_id]
     rand_prev = params[:randomize].blank? ? nil : @storyline.prev
-    
-    # Split into sentences and create separate storylines for each sentence
-    lines = TactfulTokenizer::Model.new.tokenize_text(@storyline.line)   
-    previous = Storyline.find(@storyline.prev) if @storyline.prev
-    next_last = @storyline.next.blank? ? nil : Storyline.find(@storyline.next) 
-    lines.each do |line|
-      @storyline = Storyline.new(:line => line)
-      @storyline.user = @current_user if @current_user
-      @storyline.save
-      if previous
-        @storyline.insert_after(previous, true)
-      else
-        @storyline.root = true
-        @storyline.save
-      end
-      previous = @storyline
-      @first_line ||= @storyline
-    end
-    @storyline.insert_before(next_last, true) if next_last
-    
+    @first_line, @storyline, lines, ids = insert_lines @storyline
     respond_to do |format|
       if @storyline.save
         format.js

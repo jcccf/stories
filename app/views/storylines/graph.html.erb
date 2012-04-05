@@ -4,26 +4,53 @@
 
 <%= javascript_include_tag "d3" %>
 
-<script type="text/javascript">
+<script>
 function d3viz() {
+  
+  //
+  // Add/Edit Nodes
+  //
   var activeNode = null;
   $().ready(function() {  
     $('#edit_dialog').hide();
     $('#edit_dialog_button').click(function() {
       if (activeNode.dashed) {
         jnodes.push({"name": $('#edit_dialog_text').val(), "group": jnodes[activeNode.parentIndex].group+1, "stroke": 2});
-        jlinks.push({"source": activeNode.parentIndex, "target": jnodes.length-1, "value":1});
+        var nodeIndex = jnodes.length - 1;
+        jlinks.push({"source": activeNode.parentIndex, "target": nodeIndex, "value":1});
+        jnodes.push({"name": "+", "group": jnodes[activeNode.parentIndex].group+1, "stroke": 2, "parentIndex": nodeIndex, "dashed": true});
+        jlinks.push({"source": nodeIndex, "target": jnodes.length-1, "value": 1});
         // Update
         $.post("<%= graph_add_storylines_path %>",
           { "parent_id": jnodes[activeNode.parentIndex].real_id, "line": $('#edit_dialog_text').val() },
-          function(data) {} );
+          function(data) {
+            lastIndex = nodeIndex;
+            for(var i = 0; i < data.lines.length; i++) {
+              if (i == 0) { // Update initial added node
+                jnodes[nodeIndex].name = data.lines[0];
+                jnodes[nodeIndex].real_id = data.ids[0];
+              }
+              else { // Add child nodes, plus signs, and edges
+                jnodes.push({"name": data.lines[i], "group": jnodes[lastIndex].group+1, "stroke": 2, "real_id": data.ids[i]});
+                var newIndex = jnodes.length - 1;
+                jlinks.push({"source": lastIndex, "target": newIndex, "value":1});
+                jnodes.push({"name": "+", "group": jnodes[lastIndex].group+1, "stroke": 2, "parentIndex": newIndex, "dashed": true});
+                jlinks.push({"source": newIndex, "target": jnodes.length-1, "value": 1});
+                lastIndex = newIndex;
+              }
+            }
+            // Only redraw graph if new items were added
+            if (!(data.lines[0] == $('#edit_dialog_text').val() && data.lines.length == 1)) {
+              supdate();
+            }
+          }, "json");
       }
       else{
         activeNode.name = $('#edit_dialog_text').val();
         // Update
         $.post("<%= graph_update_storylines_path %>",
           { "id": activeNode.real_id, "line": $('#edit_dialog_text').val() },
-          function(data) {} );
+          function(data) { } );
       }
       $('#edit_dialog').hide();
       supdate();
@@ -50,7 +77,9 @@ function d3viz() {
     });
   }
 
-  // Original code courtesy of http://bl.ocks.org/1846692
+  //
+  // D3 Starts Here! Original code courtesy of http://bl.ocks.org/1846692
+  //
   var w = 1280,
       h = 720,
       color = d3.scale.category20(),
@@ -61,8 +90,7 @@ function d3viz() {
       .attr("width", "100%")
       .attr("height", "100%");
 
-  // Pan and Zoom
-  // http://groups.google.com/group/d3-js/browse_thread/thread/346e75ba083fba4b
+  // Pan and Zoom http://groups.google.com/group/d3-js/browse_thread/thread/346e75ba083fba4b
   vis.append("rect") 
     .attr("width", "100%") 
     .attr("height", "100%") 
