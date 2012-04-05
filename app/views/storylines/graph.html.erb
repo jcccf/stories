@@ -92,23 +92,29 @@ function d3viz() {
       .attr("height", "100%");
 
   // Pan and Zoom http://groups.google.com/group/d3-js/browse_thread/thread/346e75ba083fba4b
+  var scaly = 1.0;
+  var zoomy = d3.behavior.zoom()
+    .xExtent(function() { range = d3.extent(jnodes, function(d) { return d.x }); return [range[1]-range[0], $('svg').width()]; } )
+    .yExtent(function() { range = d3.extent(jnodes, function(d) { return d.y }); return [range[1]-range[0], $('svg').height()]; } )
+    .scaleExtent([1.0/16, 8])
+    .on("zoom", function() {
+      vis.attr("transform", "translate(" + d3.event.translate + 
+        ")scale(" + d3.event.scale + ")");
+      scaly = d3.event.scale;
+    });
+  $().ready(function() {
+    $('#recenter').live('click', function() {
+      xlate = [(-jnodes[0].x)*scaly + $('svg').width()/2, (-jnodes[0].y)*scaly + $('svg').height()/2];
+      vis.attr("transform", "translate("+xlate+")scale(" + scaly + ")");
+      zoomy.translate(xlate);
+    });
+  });
   vis.append("rect") 
     .attr("width", "100%") 
     .attr("height", "100%") 
     .attr("fill", "#fcfcfc") 
-    .call(d3.behavior.zoom()
-      .xExtent(function() { range = d3.extent(jnodes, function(d) { return d.x }); return [range[1]-range[0], $('svg').width()]; } )
-      .yExtent(function() { range = d3.extent(jnodes, function(d) { return d.y }); return [range[1]-range[0], $('svg').height()]; } )
-      .scaleExtent([1.0/16, 8])
-      .on("zoom", function() {
-        vis.attr("transform", "translate(" + d3.event.translate + 
-          ")scale(" + d3.event.scale + ")");
-     }));
-  vis = vis.append("g"); 
-
-  $('#recenter').live('click', function() {
-    vis.attr("transform", "translate(" + d3.even)
-  });
+    .call(zoomy);
+  vis = vis.append("g");
 
   // Force Layout
   var force = self.force = d3.layout.force()
@@ -186,7 +192,8 @@ function d3viz() {
       .attr("stroke", function(d) { return color(d.group); })
       .attr("stroke-width", function(d) { return d.stroke+"px"; })
       .attr("stroke-dasharray", function(d) { if (d.dashed) return "5 3"; } )
-      .on("click", openEditDialog);
+      .on("click", openEditDialog)
+      .on("touchend", openEditDialog);
   
     node.selectAll("text").remove(); // Clear all existing text
   
@@ -249,5 +256,6 @@ d3viz();
 
 <footer class="floating_footer">
   <%= link_to 'Back', storylines_path %> · 
+  <a id="recenter" href="#">Re-center</a> · 
   <%= link_to 'Story View', @storyline %>
 </footer>

@@ -4773,7 +4773,6 @@ d3.behavior.zoom = function() {
     l = point(l);
     xlimit = xExtent();
     ylimit = yExtent();
-    // console.log(translate);
     if (translate[0] + xlimit[0] / 2 * scale < xlimit[1] / 2) {
       if (translate[0] + xlimit[0] / 2 * scale > 0 || (p[0]-l[0]) > 0) {
         translate[0] += p[0] - l[0];
