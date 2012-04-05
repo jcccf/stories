@@ -78,10 +78,10 @@ function d3viz() {
     }
   }
   if (isiPad) {
-    $(document).bind('touchend', hideDialog);
+    $("#viz_wrapper").bind('touchend', function(e) { alert("hi!"); hideDialog(e) });
   }
   else {
-    $(document).click(hideDialog);
+    $("#viz_wrapper").click(hideDialog);
   }
 
   //
