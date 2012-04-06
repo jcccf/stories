@@ -360,14 +360,16 @@ svg {
   margin-left: -100px;
   width: 200px;
   top: 0;
-  line-height: 60px;
-  font-size: 45px;
 }
 
 #graph_navigation {
   position: fixed;
-  top: 15px;
-  left: 10px;
+  top: 25px;
+  left: 25px;
+  img {
+    width: 30px;
+    height: 30px;
+  }
   img:hover {
     cursor: pointer;
   }
