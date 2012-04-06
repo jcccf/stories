@@ -200,7 +200,7 @@ function d3viz() {
       .attr("stroke-width", function(d) { return d.stroke+"px"; })
       .attr("stroke-dasharray", function(d) { if (d.dashed) return "5 3"; } );
     if (isiPad) {
-      nodeCircles.on("touchend", openEditDialog);
+      nodeCircles.on("click", openEditDialog);
     }
     else {
       nodeCircles.on("click", openEditDialog);
