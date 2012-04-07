@@ -165,7 +165,7 @@ class Storyline < ActiveRecord::Base
       if !id_to_index.include? line.id
         id_to_index[line.id] = counter
         counter += 1
-        data[:nodes] << { :name => line.line, :group => group, :stroke => (group > 0) ? 2 : 4, :real_id => line.id }
+        data[:nodes] << { :name => line.line, :group => group, :stroke => (group > 0) ? 2 : 4, :real_id => line.id, :age => 0.5 }
         
         # Add Plus
         data[:nodes] << { :name => "+", :group => group, :stroke => 2, :real_id => line.id, :parentIndex => id_to_index[line.id], :dashed => true }

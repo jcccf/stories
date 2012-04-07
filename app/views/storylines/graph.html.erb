@@ -252,6 +252,22 @@ function d3viz() {
       .style("fill", function(d) { return color(d.group); })
       .style("stroke", function(d) { return color(d.group); });
   }
+  
+  $().ready(function() {
+    $('#animateCirc').click(function() {
+      vis.selectAll("path").transition().duration(6000).attrTween("d", function(d) { 
+        var start = 0;
+        if (d.age) start = Math.max(0, 1-d.age)*2*Math.PI;
+        var i = d3.interpolateNumber(start, 2*Math.PI);
+        return function(t) {
+          return d3.svg.arc()
+            .innerRadius(function(d) { if (d.age) return d.radius+d.stroke+1; else return 0; })
+            .outerRadius(function(d) { if (d.age) return d.radius+d.stroke+3; else return 0; })
+            .startAngle(0).endAngle(i(t))(d);
+        }
+      });
+    })
+  });
 }
 d3viz();
 </script>
@@ -268,6 +284,7 @@ d3viz();
 
 <div id="graph_navigation">
   <div id="recenter"><%= image_tag("center.svg", :border => 0) %></div>
+  <div id="animateCirc">ANIMATECIRCLES</div>
 </div>
 
 <footer class="floating_footer">
