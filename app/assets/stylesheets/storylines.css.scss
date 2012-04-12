@@ -366,6 +366,21 @@ svg {
   position: fixed;
   top: 25px;
   left: 25px;
+  div {
+    float: left;
+    margin-right: 10px;
+    border: 1px solid gray;
+    border-radius: 4px;
+    height: 30px;
+    padding: 3px;
+    box-shadow: inset 0px 0px 3px #efefef;
+    opacity: 0.5;
+    @include opacity_transition;
+    &:hover {
+      opacity: 1.0;
+      @include opacity_transition;
+    }
+  }
   img {
     width: 30px;
     height: 30px;

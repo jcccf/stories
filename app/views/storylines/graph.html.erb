@@ -157,6 +157,7 @@ function d3viz() {
   });
   
   // Grabs a new JSON, determines which nodes are new and adds them to the existing graph
+  var jsonUpdateTimeout = null;
   function jsonUpdate() {
     d3.json("<%= storyline_path(@storyline, :format => 'json') %>", function(json) {
       var new_last_id = 0;
@@ -176,12 +177,24 @@ function d3viz() {
           jlinks.push({ "source": real_to_index[json.nodes[link.source].real_id], "target": real_to_index[json.nodes[link.target].real_id] , "value": link.value })
         }
       });
-      last_id = new_last_id;
+      last_id = Math.max(last_id, new_last_id);
       supdate();
-      setTimeout(jsonUpdate, 60000);
+      jsonUpdateTimeout = setTimeout(jsonUpdate, 60000);
     });
   }
-  setTimeout(jsonUpdate, 60000);
+  $().ready(function() {
+    $('#loading').click(function() {
+      if ($('#loading img').hasClass('animate')) {
+        $('#loading img').removeClass('animate');
+        clearTimeout(jsonUpdateTimeout);
+      }
+      else {
+        $('#loading img').addClass('animate');
+        clearTimeout(jsonUpdateTimeout);
+        jsonUpdate();
+      }    
+    });    
+  });
 
   function supdate() {
     force.nodes(jnodes).links(jlinks).start(); // Restart force layout
@@ -323,6 +336,7 @@ d3viz();
 
 <div id="graph_navigation">
   <div id="recenter"><%= image_tag("center.svg", :border => 0) %></div>
+  <div id="loading"><%= image_tag("refresh.svg", :border => 0) %></div>
 </div>
 
 <footer class="floating_footer">
