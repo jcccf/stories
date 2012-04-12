@@ -4,7 +4,7 @@
 	font-family: "Junge", Georgia, serif;
 }
 
-h1, h2 {
+h1, h2, h5 {
   text-align: center;
   font-family: "Amatic SC", cursive; /* Qwigley, Dancing Script */
   
@@ -33,6 +33,13 @@ h1 {
 h2 {
   font-size: 4.0em;
   line-height: 80px;
+  a {
+    font-size: smaller;
+    color: #A31E39;
+  }
+  a:visited {
+    color: #A31E39;
+  }
 }
 
 h3 {

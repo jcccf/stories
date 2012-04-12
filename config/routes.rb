@@ -17,6 +17,7 @@ Stories::Application.routes.draw do
     end
     collection do
       get 'new_random'
+      get 'latest'
       post 'graph_update'
       post 'graph_add'
     end

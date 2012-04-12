@@ -22,6 +22,7 @@ class StorylinesController < ApplicationController
     
     if params[:prev_end] # Meaning starting from prev_id go backwards until the beginning, then append the current storyline
       early_continuations = Storyline.find(params[:prev_end]).random_previous
+      early_continuations = early_continuations[0..-2] if early_continuations[-1].id == @storyline.id
       Storyline.link(early_continuations[-1], @storyline) if early_continuations.size > 0
       Storyline.link(@storyline, @continuations[0]) if @continuations.size > 0
       @continuations = early_continuations + [@storyline] + @continuations
@@ -70,6 +71,14 @@ class StorylinesController < ApplicationController
     @storyline.prev = @storyline_prev.id
     @placeholder_text = "And then what?"
     respond_to do |format|
+      format.html
+    end
+  end
+  
+  def latest
+    @storylines = Storyline.order("id desc").limit(10)
+    respond_to do |format|
+      format.json { render json: @storylines.map { |s| { :id => s['id'], :line => s['line']} } }
       format.html
     end
   end

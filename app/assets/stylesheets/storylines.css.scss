@@ -374,3 +374,37 @@ svg {
     cursor: pointer;
   }
 }
+
+/* Rotate Animation */
+@-webkit-keyframes rotate {
+  from {
+    -webkit-transform: rotate(0deg);
+  }
+  to { 
+    -webkit-transform: rotate(360deg);
+  }
+}
+
+#loading {
+  text-align: center;
+
+  img {
+    width: 30px;
+    height: 30px;
+    opacity: 0.5;
+    
+    &:hover {
+      cursor: pointer;
+      opacity: 1.0;
+      @include opacity_transition;
+    }
+    
+    &.animate {
+      -webkit-animation-name:             rotate; 
+      -webkit-animation-duration:         1.5s; 
+      -webkit-animation-iteration-count:  infinite;
+      -webkit-animation-timing-function: linear;
+    }
+    
+  }
+}

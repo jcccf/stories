@@ -1,0 +1,74 @@
+<h2><%= link_to "Storeys", storylines_path %> / What's New</h2>
+
+<script>
+
+var StorylineUpdater = (function() {
+  var t = null;
+  
+  function prependStorylineSingle(id, line) {
+    var $new = $('.storyline_single').first().clone();
+    var last_id = $new.attr('data-id');
+    $new.attr('data-id', id);
+    $new.find('a').attr("href", $new.find('a').attr("href").replace(new RegExp(last_id, "g"), id)).html(line);
+    $new.prependTo('.story').hide().slideToggle('slow');
+    console.log("Generated "+line);
+  }
+
+  function updateLines() {
+    $('#loading img').addClass('animate');
+    $.getJSON('<%= latest_storylines_path(:format => "json") %>', function(data) {
+      // Get all existing ids on page, and figure out which to show and which to hide.
+      var ids = [], new_items = [];
+      $('.storyline_single').each(function() {
+        ids.push($(this).attr("data-id"));
+      });
+      $(data).each(function(index, value) {
+        var origIdx = ids.indexOf(value.id+"");
+        if (origIdx >= 0) {
+          delete ids[origIdx];
+        }
+        else {
+          prependStorylineSingle(value.id, value.line); // Prepend this Storyline
+        }
+      });
+      console.log(ids);
+      // Remove Old IDs
+      $(ids).each(function(index, value) {
+        if (value != undefined) {
+          $('.storyline_single[data-id='+value+']').slideToggle('slow').remove();        
+        }
+      });
+      $('#loading img').removeClass('animate');
+    });
+    t = setTimeout(updateLines, 30000);
+  }
+  t = setTimeout(updateLines, 30000);
+  
+  $().ready(function() {
+    $('#loading').click(function() {
+      clearTimeout(t);
+      updateLines();
+    });
+  });
+  
+})();
+</script>
+
+<div class="story">
+  <div id="loading"><%= image_tag "refresh.svg", 'data-tooltip' => 'Refresh Lines' %></div>
+<% @storylines.each do |storyline| %>
+<div class="storyline_single" data-id="<%= storyline.id %>">
+  <div class="storyline_root">
+    <%= link_to storyline.line, storyline_path(storyline, :prev_end => storyline.id) %>
+  </div>
+  <div class="storyline_divider">
+    <%= image_tag "divider.png" %>
+  </div>
+    <!-- <td><%= link_to 'Edit', edit_storyline_path(storyline) %></td> -->
+    <!-- <td><%= link_to 'Delete', storyline, confirm: 'Are you sure?', method: :delete %></td> -->
+</div>
+<% end %>
+
+<footer>
+  <%= link_to 'Back', storylines_path %>
+</footer>

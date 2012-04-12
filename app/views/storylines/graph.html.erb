@@ -17,7 +17,7 @@ function d3viz() {
     $('#edit_dialog').hide();
     $('#edit_dialog_button').click(function() {
       if (activeNode.dashed) {
-        jnodes.push({"name": $('#edit_dialog_text').val(), "group": jnodes[activeNode.parentIndex].group+1, "stroke": 2});
+        jnodes.push({"name": $('#edit_dialog_text').val(), "group": jnodes[activeNode.parentIndex].group+1, "stroke": 2, "age": 0.01}); // Must be > 0 because 0 is false in Javascript
         var nodeIndex = jnodes.length - 1;
         jlinks.push({"source": activeNode.parentIndex, "target": nodeIndex, "value":1});
         jnodes.push({"name": "+", "group": jnodes[activeNode.parentIndex].group+1, "stroke": 2, "parentIndex": nodeIndex, "dashed": true});
@@ -33,7 +33,7 @@ function d3viz() {
                 jnodes[nodeIndex].real_id = data.ids[0];
               }
               else { // Add child nodes, plus signs, and edges
-                jnodes.push({"name": data.lines[i], "group": jnodes[lastIndex].group+1, "stroke": 2, "real_id": data.ids[i]});
+                jnodes.push({"name": data.lines[i], "group": jnodes[lastIndex].group+1, "stroke": 2, "real_id": data.ids[i], age: 0.01});
                 var newIndex = jnodes.length - 1;
                 jlinks.push({"source": lastIndex, "target": newIndex, "value":1});
                 jnodes.push({"name": "+", "group": jnodes[lastIndex].group+1, "stroke": 2, "parentIndex": newIndex, "dashed": true});
@@ -71,8 +71,10 @@ function d3viz() {
       $('#edit_dialog_button').val("Edit");
       $('#edit_dialog_text').val(d.name);    
     }
-    $('#edit_dialog').show();
-    click_time = new Date().getTime();
+    if (activeNode.dashed || (d.age && d.age < 1)) {
+      $('#edit_dialog').show();
+      click_time = new Date().getTime();
+    }
   }
   function hideDialog(e) {
     if (!$(e.target).parents().hasClass('edit_dialog') && new Date().getTime() - click_time > 200) {
@@ -249,25 +251,25 @@ function d3viz() {
        .innerRadius(function(d) { if (d.age) return d.radius+d.stroke+1; else return 0; })
        .outerRadius(function(d) { if (d.age) return d.radius+d.stroke+3; else return 0; })
        .startAngle(0).endAngle(function(d) { if (d.age) return Math.max(0, 1-d.age)*2*Math.PI; else return 0; }))
-      .style("fill", function(d) { return color(d.group); })
+      .style("fill", function(d) { console.log(d.age); return color(d.group); })
       .style("stroke", function(d) { return color(d.group); });
-  }
-  
-  $().ready(function() {
-    $('#animateCirc').click(function() {
-      vis.selectAll("path").transition().duration(6000).attrTween("d", function(d) { 
+      
+    // Animate Age
+    nodePaths.transition().duration(function(d) { return (1.0-d.age) * 60000; }).attrTween("d", function(d) { 
         var start = 0;
         if (d.age) start = Math.max(0, 1-d.age)*2*Math.PI;
-        var i = d3.interpolateNumber(start, 2*Math.PI);
+        var i = d3.interpolateNumber(start, 0);
         return function(t) {
+          if (i(t) == 0) {
+            d.age = 1;
+          }
           return d3.svg.arc()
-            .innerRadius(function(d) { if (d.age) return d.radius+d.stroke+1; else return 0; })
-            .outerRadius(function(d) { if (d.age) return d.radius+d.stroke+3; else return 0; })
+            .innerRadius(function(d) { if (d.age && i(t) > 0) return d.radius+d.stroke+1; else return 0; })
+            .outerRadius(function(d) { if (d.age && i(t) > 0) return d.radius+d.stroke+3; else return 0; })
             .startAngle(0).endAngle(i(t))(d);
         }
       });
-    })
-  });
+  }
 }
 d3viz();
 </script>
@@ -284,7 +286,6 @@ d3viz();
 
 <div id="graph_navigation">
   <div id="recenter"><%= image_tag("center.svg", :border => 0) %></div>
-  <div id="animateCirc">ANIMATECIRCLES</div>
 </div>
 
 <footer class="floating_footer">
