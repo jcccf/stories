@@ -9,6 +9,10 @@ var isiPad = navigator.userAgent.match(/iPad/i) != null;
 
 function d3viz() {
   
+  // For use in updating the graph from server
+  var real_to_index = {}; // Hash from real id to the index of that node
+  var last_id = 0; // Store the last real id seen among all nodes
+  
   //
   // Add/Edit Nodes
   //
@@ -19,9 +23,9 @@ function d3viz() {
       if (activeNode.dashed) {
         jnodes.push({"name": $('#edit_dialog_text').val(), "group": jnodes[activeNode.parentIndex].group+1, "stroke": 2, "age": 0.01}); // Must be > 0 because 0 is false in Javascript
         var nodeIndex = jnodes.length - 1;
-        jlinks.push({"source": activeNode.parentIndex, "target": nodeIndex, "value":1});
+        jlinks.push({"source": activeNode.parentIndex, "target": nodeIndex, "value": 2 + ($('#edit_dialog_text').val().length/50)});
         jnodes.push({"name": "+", "group": jnodes[activeNode.parentIndex].group+1, "stroke": 2, "parentIndex": nodeIndex, "dashed": true});
-        jlinks.push({"source": nodeIndex, "target": jnodes.length-1, "value": 1});
+        jlinks.push({"source": nodeIndex, "target": jnodes.length-1, "value":  0.8 + ($('#edit_dialog_text').val().length+50)/100});
         // Update
         $.post("<%= graph_add_storylines_path %>",
           { "parent_id": jnodes[activeNode.parentIndex].real_id, "line": $('#edit_dialog_text').val() },
@@ -35,9 +39,9 @@ function d3viz() {
               else { // Add child nodes, plus signs, and edges
                 jnodes.push({"name": data.lines[i], "group": jnodes[lastIndex].group+1, "stroke": 2, "real_id": data.ids[i], age: 0.01});
                 var newIndex = jnodes.length - 1;
-                jlinks.push({"source": lastIndex, "target": newIndex, "value":1});
+                jlinks.push({"source": lastIndex, "target": newIndex, "value": 2 + (data.lines[i].length/50)});
                 jnodes.push({"name": "+", "group": jnodes[lastIndex].group+1, "stroke": 2, "parentIndex": newIndex, "dashed": true});
-                jlinks.push({"source": newIndex, "target": jnodes.length-1, "value": 1});
+                jlinks.push({"source": newIndex, "target": jnodes.length-1, "value": 0.8 + (data.lines[i].length+50)/100});
                 lastIndex = newIndex;
               }
             }
@@ -143,8 +147,41 @@ function d3viz() {
   d3.json("<%= storyline_path(@storyline, :format => 'json') %>", function(json) {
     jnodes = json.nodes;
     jlinks = json.links;
+    $(jnodes).each(function(index, node) {
+      if (!node.dashed) {
+        real_to_index[node.real_id] = index;
+        last_id = Math.max(node.real_id, last_id);        
+      }
+    });
     supdate();
   });
+  
+  // Grabs a new JSON, determines which nodes are new and adds them to the existing graph
+  function jsonUpdate() {
+    d3.json("<%= storyline_path(@storyline, :format => 'json') %>", function(json) {
+      var new_last_id = 0;
+      $(json.nodes).each(function(index, node) {
+        if (!node.dashed && node.real_id > last_id) {
+          jnodes.push(node);
+          real_to_index[node.real_id] = jnodes.length - 1;
+          new_last_id = Math.max(new_last_id, node.id);
+          // Add + Node
+          jnodes.push({ "name": "+", "group": node.group, "stroke": 2, "real_id": node.real_id, "parentIndex": real_to_index[node.real_id], "dashed": true})
+          jlinks.push({ "source": real_to_index[node.real_id], "target": jnodes.length-1, "value": 0.8 + (node.name.length+50)/100 })
+        }
+      });
+      // Add links by determining the new indices of each node
+      $(json.links).each(function(index, link) {
+        if (json.nodes[link.source].real_id > last_id || json.nodes[link.target].real_id > last_id) {
+          jlinks.push({ "source": real_to_index[json.nodes[link.source].real_id], "target": real_to_index[json.nodes[link.target].real_id] , "value": link.value })
+        }
+      });
+      last_id = new_last_id;
+      supdate();
+      setTimeout(jsonUpdate, 60000);
+    });
+  }
+  setTimeout(jsonUpdate, 60000);
 
   function supdate() {
     force.nodes(jnodes).links(jlinks).start(); // Restart force layout
@@ -251,7 +288,7 @@ function d3viz() {
        .innerRadius(function(d) { if (d.age) return d.radius+d.stroke+1; else return 0; })
        .outerRadius(function(d) { if (d.age) return d.radius+d.stroke+3; else return 0; })
        .startAngle(0).endAngle(function(d) { if (d.age) return Math.max(0, 1-d.age)*2*Math.PI; else return 0; }))
-      .style("fill", function(d) { console.log(d.age); return color(d.group); })
+      .style("fill", function(d) { return color(d.group); })
       .style("stroke", function(d) { return color(d.group); });
       
     // Animate Age
