@@ -80,6 +80,7 @@ class StorylinesController < ApplicationController
     respond_to do |format|
       format.json { render json: @storylines.map { |s| { :id => s['id'], :line => s['line']} } }
       format.html
+      format.text { @storylines = Storyline.order("id desc").limit(100); render text: @storylines.map { |s| s.line + "|" + s.created_at.to_s }.join("*") }
     end
   end
   
