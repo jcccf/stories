@@ -4771,27 +4771,19 @@ d3.behavior.zoom = function() {
 
   function translateTo(p, l) {
     l = point(l);
-    xlimit = xExtent();
-    ylimit = yExtent();
-    if (translate[0] + xlimit[0] / 2 * scale < xlimit[1] / 2) {
-      if (translate[0] + xlimit[0] / 2 * scale > 0 || (p[0]-l[0]) > 0) {
-        translate[0] += p[0] - l[0];
-      }
+    xlimit = xExtent(); // Width of graph and width of browser window
+    ylimit = yExtent(); // Height of graph and height of browser window
+    var new_x = translate[0] + p[0] - l[0]; // Possible new x position
+    var new_x_left = new_x + xlimit[0]/2 * scale; // Left x limit
+    var new_x_right = new_x - xlimit[1]; // Right x limit
+    var new_y = translate[1] + p[1] - l[1]; // Possible new y position
+    var new_y_left = new_y + ylimit[0]/2 * scale;
+    var new_y_right = new_y - ylimit[1];
+    if ((new_x_left > 0 && new_x_right < 0) || (new_x_left < 0 && p[0] - l[0] > 0) || (new_x_right > 0 && p[0] - l[0] < 0)) {
+      translate[0] += p[0] - l[0];
     }
-    else {
-      if (translate[0] - xlimit[0] / 2 * scale < xlimit[1] || (p[0]-l[0]) < 0) {
-        translate[0] += p[0] - l[0];
-      }
-    }
-    if (translate[1] + ylimit[0] / 2 * scale < ylimit[1] / 2) {
-      if (translate[1] + ylimit[0] / 2 * scale > 0 || (p[1]-l[1]) > 0) {
-        translate[1] += p[1] - l[1];
-      }
-    }
-    else {
-      if (translate[1] - ylimit[0] / 2 * scale < ylimit[1] || (p[1]-l[1]) < 0) {
-        translate[1] += p[1] - l[1];
-      }
+    if ((new_y_left > 0 && new_y_right < 0) || (new_y_left < 0 && p[1] - l[1] > 0) || (new_y_right > 0 && p[1] - l[1] < 0)) {
+      translate[1] += p[1] - l[1];
     }
   }
 

@@ -11,7 +11,6 @@ function d3viz() {
   
   // For use in updating the graph from server
   var real_to_index = {}; // Hash from real id to the index of that node
-  var last_id = 0; // Store the last real id seen among all nodes
   
   //
   // Add/Edit Nodes
@@ -35,10 +34,12 @@ function d3viz() {
               if (i == 0) { // Update initial added node
                 jnodes[nodeIndex].name = data.lines[0];
                 jnodes[nodeIndex].real_id = data.ids[0];
+                real_to_index[data.ids[0]] = nodeIndex;
               }
               else { // Add child nodes, plus signs, and edges
                 jnodes.push({"name": data.lines[i], "group": jnodes[lastIndex].group+1, "stroke": 2, "real_id": data.ids[i], age: 0.01});
                 var newIndex = jnodes.length - 1;
+                real_to_index[data.ids[i]] = newIndex;
                 jlinks.push({"source": lastIndex, "target": newIndex, "value": 2 + (data.lines[i].length/50)});
                 jnodes.push({"name": "+", "group": jnodes[lastIndex].group+1, "stroke": 2, "parentIndex": newIndex, "dashed": true});
                 jlinks.push({"source": newIndex, "target": jnodes.length-1, "value": 0.8 + (data.lines[i].length+50)/100});
@@ -79,6 +80,9 @@ function d3viz() {
       $('#edit_dialog').show();
       click_time = new Date().getTime();
     }
+    else {
+      notice("Sorry, but you shouldn't edit this :(");
+    }
   }
   function hideDialog(e) {
     if (!$(e.target).parents().hasClass('edit_dialog') && new Date().getTime() - click_time > 200) {
@@ -109,7 +113,7 @@ function d3viz() {
   var zoomy = d3.behavior.zoom()
     .xExtent(function() { range = d3.extent(jnodes, function(d) { return d.x }); return [range[1]-range[0], $('svg').width()]; } )
     .yExtent(function() { range = d3.extent(jnodes, function(d) { return d.y }); return [range[1]-range[0], $('svg').height()]; } )
-    .scaleExtent([1.0/16, 8])
+    .scaleExtent([1.0/8, 8])
     .on("zoom", function() {
       vis.attr("transform", "translate(" + d3.event.translate + 
         ")scale(" + d3.event.scale + ")");
@@ -135,12 +139,26 @@ function d3viz() {
     .distance(function(d) { return 100 * d.value })
     .charge(function(d) { if (d.dashed) return -5000; else return -5000/(d.group/2+1); })
     .size([w, h]);
-  force.on("tick", function() {
+  force.on("tick", function(e) {
     link.attr("x1", function(d) { return d.source.x; })
         .attr("y1", function(d) { return d.source.y; })
         .attr("x2", function(d) { return d.target.x; })
         .attr("y2", function(d) { return d.target.y; });
-    node.attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; });
+    // node.attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; });
+    node.attr("transform", function(d) {
+      if(d.index==0){
+          damper = 0.1;
+          d.x = d.x + (w/2 - d.x) * (damper + 0.71) * e.alpha;
+          d.y = d.y + (h/2 - d.y) * (damper + 0.71) * e.alpha;
+      }
+      //start is initiated when importing nodes from XML
+      if(d.start === true){
+          d.x = w/2;
+          d.y = h/2;
+          d.start = false;
+      }
+      return "translate("+d.x+","+d.y+")";
+    });
   });
 
   // Ajax Call
@@ -149,8 +167,7 @@ function d3viz() {
     jlinks = json.links;
     $(jnodes).each(function(index, node) {
       if (!node.dashed) {
-        real_to_index[node.real_id] = index;
-        last_id = Math.max(node.real_id, last_id);        
+        real_to_index[node.real_id] = index;   
       }
     });
     supdate();
@@ -160,12 +177,12 @@ function d3viz() {
   var jsonUpdateTimeout = null;
   function jsonUpdate() {
     d3.json("<%= storyline_path(@storyline, :format => 'json') %>", function(json) {
-      var new_last_id = 0;
+      var new_nodes = {};
       $(json.nodes).each(function(index, node) {
-        if (!node.dashed && node.real_id > last_id) {
+        if (!node.dashed && !(node.real_id in real_to_index)) { // If we haven't seen this real_id before
           jnodes.push(node);
           real_to_index[node.real_id] = jnodes.length - 1;
-          new_last_id = Math.max(new_last_id, node.id);
+          new_nodes[node.real_id] = true;
           // Add + Node
           jnodes.push({ "name": "+", "group": node.group, "stroke": 2, "real_id": node.real_id, "parentIndex": real_to_index[node.real_id], "dashed": true})
           jlinks.push({ "source": real_to_index[node.real_id], "target": jnodes.length-1, "value": 0.8 + (node.name.length+50)/100 })
@@ -173,11 +190,10 @@ function d3viz() {
       });
       // Add links by determining the new indices of each node
       $(json.links).each(function(index, link) {
-        if (json.nodes[link.source].real_id > last_id || json.nodes[link.target].real_id > last_id) {
+        if (json.nodes[link.source].real_id in new_nodes || json.nodes[link.target].real_id in new_nodes) { // If either the source or target node is new
           jlinks.push({ "source": real_to_index[json.nodes[link.source].real_id], "target": real_to_index[json.nodes[link.target].real_id] , "value": link.value })
         }
       });
-      last_id = Math.max(last_id, new_last_id);
       supdate();
       jsonUpdateTimeout = setTimeout(jsonUpdate, 60000);
     });
