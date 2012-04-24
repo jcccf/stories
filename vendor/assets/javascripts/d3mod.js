@@ -4779,6 +4779,10 @@ d3.behavior.zoom = function() {
     var new_y = translate[1] + p[1] - l[1]; // Possible new y position
     var new_y_left = new_y + ylimit[0]/2 * scale;
     var new_y_right = new_y - ylimit[1];
+    // console.log(xlimit);
+    // console.log(ylimit);
+    // console.log(new_x);
+    // console.log(new_y);
     if ((new_x_left > 0 && new_x_right < 0) || (new_x_left < 0 && p[0] - l[0] > 0) || (new_x_right > 0 && p[0] - l[0] < 0)) {
       translate[0] += p[0] - l[0];
     }

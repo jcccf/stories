@@ -112,8 +112,8 @@ function d3viz() {
   // Pan and Zoom http://groups.google.com/group/d3-js/browse_thread/thread/346e75ba083fba4b
   var scaly = 1.0;
   var zoomy = d3.behavior.zoom()
-    .xExtent(function() { range = d3.extent(jnodes, function(d) { return d.x }); return [range[1]-range[0], $('svg').width()]; } )
-    .yExtent(function() { range = d3.extent(jnodes, function(d) { return d.y }); return [range[1]-range[0], $('svg').height()]; } )
+    .xExtent(function() { range = d3.extent(jnodes, function(d) { return d.x }); return [range[1]-range[0], $('#viz_wrapper').width()]; } )
+    .yExtent(function() { range = d3.extent(jnodes, function(d) { return d.y }); return [range[1]-range[0], $('#viz_wrapper').height()]; } )
     .scaleExtent([1.0/8, 8])
     .on("zoom", function() {
       vis.attr("transform", "translate(" + d3.event.translate + 
