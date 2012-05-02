@@ -6,6 +6,32 @@
 <%= javascript_include_tag "colorbrewer" %>
 
 <script>
+
+// To fade out controls when the mouse/finger is idle for 10 seconds
+$().ready(function() {
+  var timer;
+  function fadeoutControls() {
+    $('#graph_navigation').fadeOut();
+    $('.floating_footer').fadeOut();
+    $('#feedback_panel').fadeOut();
+    $('#user_panel').fadeOut();
+  }
+  function fadeinControls() {
+    $('#graph_navigation').show();
+    $('.floating_footer').show();
+    $('#feedback_panel').show();
+    $('#user_panel').show();
+  }
+  $("svg").bind('mousemove click touchstart', function() {
+    if (timer) {
+      clearTimeout(timer);
+      timer = 0;
+    }
+    fadeinControls();
+    timer = setTimeout(fadeoutControls, 10000);
+  });
+});
+
 var isiPad = navigator.userAgent.match(/iPad/i) != null;
 
 function d3viz() {
