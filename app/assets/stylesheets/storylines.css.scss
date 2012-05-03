@@ -297,15 +297,18 @@ svg {
   top: 50%;
   z-index: 999;
   margin-top: -80px;
-  margin-left: -320px;
+  margin-left: -220px;
   display: table;
-  width: 640px;
+  width: 440px;
   height: 160px;
 }
 #edit_dialog div{
   display: table-cell;
   vertical-align: middle;
   text-align: center;
+  form textarea {
+    width: 400px;
+  }
 }
 
 #edit_dialog_text {
