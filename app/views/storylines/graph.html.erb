@@ -126,7 +126,7 @@ function d3viz() {
   //
   var w = 1280,
       h = 720,
-      color = d3.scale.ordinal().range(colorbrewer.Spectral[11]), //d3.scale.category20(), // or RdYlBu, RdYlGn, or YlGnBu
+      color = <%= @graph_theme %>,
       jnodes, jlinks,
       link, node,
       nodeCircles, nodePaths, linkObjs;

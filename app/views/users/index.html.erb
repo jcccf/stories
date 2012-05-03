@@ -1,30 +1,36 @@
-<h1>Listing users</h1>
+<h2><%= link_to "Storeys", storylines_path %> / <%= @user.name %></h2>
 <% if notice %>
 <p id="notice"><%= notice %></p>
 <% end %>
 
-<table>
-  <tr>
-    <th>Name</th>
-    <th>Password digest</th>
-    <th>Email</th>
-    <th></th>
-    <th></th>
-    <th></th>
-  </tr>
+<div style="text-align: center;">
 
-<% @users.each do |user| %>
-  <tr>
-    <td><%= user.name %></td>
-    <td><%= user.password_digest %></td>
-    <td><%= user.email %></td>
-    <td><%= link_to 'Show', user %></td>
-    <td><%= link_to 'Edit', edit_user_path(user) %></td>
-    <td><%= link_to 'Destroy', user, confirm: 'Are you sure?', method: :delete %></td>
-  </tr>
+<%= form_for(@user) do |f| %>
+  <% if @user.errors.any? %>
+    <div id="error_explanation">
+      <h2><%= pluralize(@user.errors.count, "error") %> prohibited this user from being saved:</h2>
+
+      <ul>
+      <% @user.errors.full_messages.each do |msg| %>
+        <li><%= msg %></li>
+      <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="field">
+    <%= f.label :email %><br />
+    <%= f.text_field :email, size: 40, :placeholder => 'Email'  %>
+  </div>
+  
+  <div class="field">
+    Graph theme<br />
+    <%= select_tag :graph_theme, options_for_select([['None', 'spectral'], ['Category20', 'category20'], ['Spectral', 'spectral']], :selected => @graph_theme) %>
+  </div>
+  
+  <div class="actions">
+    <%= f.submit 'Update' %>
+  </div>
 <% end %>
-</table>
 
-<br />
-
-<%= link_to 'New User', new_user_path %>
+</div>

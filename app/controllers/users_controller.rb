@@ -2,12 +2,12 @@ class UsersController < ApplicationController
   # GET /users
   # GET /users.json
   def index
-    return
-    @users = User.order :name
-
+    return if @current_user.nil?
+    @user = @current_user
+    @graph_theme = @user.preferences.graph_theme
     respond_to do |format|
       format.html # index.html.erb
-      format.json { render json: @users }
+      # format.json { render json: @users }
     end
   end
 
@@ -60,9 +60,11 @@ class UsersController < ApplicationController
   # PUT /users/1
   # PUT /users/1.json
   def update
-    return
-    @user = User.find(params[:id])
-
+    return if @current_user.nil?
+    
+    @user = @current_user
+    @user.preferences.graph_theme = params[:graph_theme]
+    
     respond_to do |format|
       if @user.update_attributes(params[:user])
         format.html { redirect_to users_url, notice: "User #{@user.name} was successfully updated." }

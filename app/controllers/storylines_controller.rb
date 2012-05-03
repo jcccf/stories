@@ -37,6 +37,18 @@ class StorylinesController < ApplicationController
   
   def graph
     @storyline = Storyline.find(params[:id])
+    
+    @graph_theme = "d3.scale.ordinal().range(colorbrewer.Spectral[11])"
+    unless @current_user.nil? && @current_user.preferences.graph_theme.nil?
+      @graph_theme = case @current_user.preferences.graph_theme
+      when "category20"
+        "d3.scale.category20()"
+      else
+        @graph_theme
+      end
+    end
+    # or RdYlBu, RdYlGn, or YlGnBu
+    
     respond_to do |format|
       format.html
     end
