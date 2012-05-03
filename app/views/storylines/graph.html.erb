@@ -343,7 +343,7 @@ function d3viz() {
        var tempNode = textElt.append("svg:tspan").text(tempWords).attr("dy", "1em").attr("x", 0);
        index += numWords;
       }
-      d.radius = Math.max(textElt.node().getBBox().width, textElt.node().getBBox().height) / 2 + 8;
+      d.radius = Math.max(textElt.node().getBBox().width, textElt.node().getBBox().height)*1.1 / 2 + 8;
     });
    
     // Set Real Radius (can only do this after we've determined how large the text box is)
