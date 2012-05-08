@@ -14,6 +14,7 @@ Stories::Application.routes.draw do
       get 'new_continue'
       get 'upvote'
       get 'graph'
+      get 'random'
     end
     collection do
       get 'new_random'

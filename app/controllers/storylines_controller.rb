@@ -35,6 +35,26 @@ class StorylinesController < ApplicationController
     end
   end
   
+  # GET /storylines/1/random.json
+  # TODO Cleanup this because this was copied from "show"
+  def random
+    @storyline = Storyline.find(params[:id])
+    other_ids = params[:other_ids] ? params[:other_ids].split(",").map{|x| x.to_i} : []
+    @continuations = @storyline.random_continuation(other_ids, [params[:next].to_i], params[:branch])
+    
+    if params[:prev_end] # Meaning starting from prev_id go backwards until the beginning, then append the current storyline
+      early_continuations = Storyline.find(params[:prev_end]).random_previous
+      early_continuations = early_continuations[0..-2] if early_continuations[-1].id == @storyline.id
+      Storyline.link(early_continuations[-1], @storyline) if early_continuations.size > 0
+      Storyline.link(@storyline, @continuations[0]) if @continuations.size > 0
+      @continuations = early_continuations + [@storyline] + @continuations
+      @storyline = @continuations.shift # Set the starting storyline correctly  
+    end
+    respond_to do |format|
+      format.json { render json: [@storyline] + @continuations }
+    end
+  end
+  
   def graph
     @storyline = Storyline.find(params[:id])
     
