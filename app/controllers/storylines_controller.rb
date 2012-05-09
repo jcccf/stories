@@ -200,7 +200,7 @@ class StorylinesController < ApplicationController
       if @storyline.save
         format.js
         format.html { redirect_to storyline_path(@first_line, :prev_end => rand_prev), notice: 'Storyline was successfully created.' }
-        format.json { render json: @storyline, status: :created, location: @storyline }
+        format.json { render json: [@first_line], status: :created, location: @first_line }
       else
         format.js
         format.html { render action: "new" }
