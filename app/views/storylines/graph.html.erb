@@ -97,18 +97,23 @@ function d3viz() {
     activeNode = d;
     if (activeNode.dashed) {
       $('#edit_dialog_button').val("Add");
-      $('#edit_dialog_text').val("");   
+      $('#edit_dialog_text').val("");
     }
     else {
       $('#edit_dialog_button').val("Edit");
-      $('#edit_dialog_text').val(d.name);    
+      $('#edit_dialog_text').val(d.name);
     }
     if (activeNode.dashed || (d.age && d.age < 1)) {
       $('#edit_dialog').show();
+      $('#edit_dialog_text').focus();
       click_time = new Date().getTime();
     }
     else {
-      notice("Sorry, but you shouldn't edit this :(");
+      // notice("Sorry, but you shouldn't edit this :(");
+      // Highlight node in red and then fade back to original color
+      var selectedNode = d3.select(this);
+      selectedNode.transition().duration(300).style("stroke", "red");
+      selectedNode.transition().delay(800).duration(700).style("stroke", color(d.group));
     }
   }
   function hideDialog(e) {
