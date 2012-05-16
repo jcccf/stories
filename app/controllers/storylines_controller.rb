@@ -6,6 +6,7 @@ class StorylinesController < ApplicationController
   # GET /storylines.json
   def index
     @storylines = Storyline.roots
+    @storylines += Storyline.user_roots(@current_user.id) if @current_user
     
     respond_to do |format|
       format.html # index.html.erb

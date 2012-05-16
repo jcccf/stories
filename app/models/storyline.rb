@@ -192,7 +192,11 @@ class Storyline < ActiveRecord::Base
   
   def self.roots
     #Storyline.all
-    Storyline.where(:root => true)
+    Storyline.where(:root => true, :user_id => nil)
+  end
+  
+  def self.user_roots(id)
+    Storyline.where(:root => true, :user_id => id)
   end
   
   def self.random
