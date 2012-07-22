@@ -20,16 +20,18 @@ namespace :graph do
         end
       end
 
-      # Print the nodes and date of creation
-      puts "// Nodes"
-      nodes.each do |k,v|
-        puts "%d %d %s" % [k, v[0].strftime("%s"), v[1]]
-      end
+      File.open("log/%d.txt" % id, "w") do |f|
+        # Print the nodes and date of creation
+        f.puts "// Nodes"
+        nodes.each do |k,v|
+          f.puts "%d %d %s" % [k, v[0].strftime("%s"), v[1]]
+        end
 
-      # Print the edges
-      puts "// Edges"
-      edges.each do |u,v|
-        puts "#{u} #{v}"
+        # Print the edges
+        f.puts "// Edges"
+        edges.each do |u,v|
+          f.puts "#{u} #{v}"
+        end
       end
     end
     
