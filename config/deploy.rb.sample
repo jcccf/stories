@@ -1,0 +1,48 @@
+# Use RVM (ruby-version is on server)
+set :rvm_ruby_string, 'ruby-1.9.2-head'
+set :rvm_type, :system
+require "rvm/capistrano"
+
+# Precompile Assets
+load 'deploy/assets'
+
+set :user, 'USERNAME'
+set :domain, 'YOURDOMAIN.com'
+set :applicationdir, "/path/to/storeys"
+
+set :application, "Storeys"
+set :scm, 'git'
+set :repository,  "ssh://username@domain/path/to/stories.git"
+set :git_enable_submodules, 1 # if you have vendored rails
+set :branch, 'master'
+set :git_shallow_clone, 1
+set :scm_verbose, true
+
+role :web, domain
+role :app, domain
+role :db,  domain, :primary => true
+
+set :deploy_to, applicationdir
+set :deploy_via, :export
+
+ssh_options[:keys] = %w(/home/user/.ssh/id_rsa) 
+
+# Passenger
+namespace :deploy do
+  task :start do ; end
+  task :stop do ; end
+  task :restart, :roles => :app, :except => { :no_release => true } do
+    run "#{try_sudo} touch #{File.join(current_path,'tmp','restart.txt')}"
+  end
+end
+
+# Symlink database.yml on the server
+# You need to create /shared/config/database.yml on the deployment server
+namespace :deploy do
+  desc "Symlinks the database.yml"
+  task :symlink_db, :roles => :app do
+    run "ln -nfs #{deploy_to}/shared/config/database.yml #{release_path}/config/database.yml"
+  end
+end
+
+after 'deploy:update_code', 'deploy:symlink_db'

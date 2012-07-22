@@ -7,6 +7,10 @@ namespace :graph do
     target_ids = $stdin.gets.split(" ").map { |i| i.to_i }
 
     target_ids.each do |id|
+      
+      filename = "log/graph_%06d.log" % id
+      print "Generating %s ..." % filename
+
       nodes, edges = {}, []
       first_node = Storyline.find_by_id(id)
       nodes[id] = [first_node.created_at, first_node.line]
@@ -20,7 +24,7 @@ namespace :graph do
         end
       end
 
-      File.open("log/%d.txt" % id, "w") do |f|
+      File.open(filename, "w") do |f|
         # Print the nodes and date of creation
         f.puts "// Nodes"
         nodes.each do |k,v|
@@ -33,6 +37,8 @@ namespace :graph do
           f.puts "#{u} #{v}"
         end
       end
+
+      puts "done!"
     end
     
   end
