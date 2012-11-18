@@ -4779,7 +4779,7 @@ d3.behavior.zoom = function() {
     var dy = p[1] - l[1];
     var newx = translate[0] + dx;
     var newy = translate[1] + dy;
-    console.log(xlimit+"   "+ylimit+"   "+translate+"   "+scale+"   "+xwidth+"   "+ywidth);
+    // console.log(xlimit+"   "+ylimit+"   "+translate+"   "+scale+"   "+xwidth+"   "+ywidth);
     if (scale == 1) { // Bounds only work properly when the zoom level hasn't been changed.
       if ((translate[0] + xlimit[0] > 0 && dx < 0) || (translate[0] + xlimit[1] < xlimit[2] && dx > 0)) {
         translate[0] = newx;
@@ -4787,14 +4787,13 @@ d3.behavior.zoom = function() {
       if ((translate[1] + ylimit[0] > 0 && dy < 0) || (translate[1] + ylimit[1] < ylimit[2] && dy > 0)) {
         translate[1] = newy;
       }
-    } else if (scale < 4) { // Else use slacker bounds for slightly higher zoom levels
-      if ((translate[0] + xwidth > 0 && dx < 0) || (translate[0] * scale < xlimit[2] - 200 && dx > 0)) {
-        translate[0] = newx;
-      }
-      if ((translate[1] + ywidth > 0 && dy < 0) || (translate[1] * scale < ylimit[2] - 200 && dy > 0)) {
-        translate[1] = newy;
-      }
-
+    // } else if (scale < 4) { // Else use slacker bounds for slightly higher zoom levels
+    //   if ((translate[0] + xwidth > 0 && dx < 0) || (translate[0] * scale < xlimit[2] - 200 && dx > 0)) {
+    //     translate[0] = newx;
+    //   }
+    //   if ((translate[1] + ywidth > 0 && dy < 0) || (translate[1] * scale < ylimit[2] - 200 && dy > 0)) {
+    //     translate[1] = newy;
+    //   }
     } else { // Can drag the graph anywhere
       translate[0] += p[0] - l[0];
       translate[1] += p[1] - l[1];
