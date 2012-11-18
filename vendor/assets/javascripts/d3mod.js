@@ -4788,10 +4788,10 @@ d3.behavior.zoom = function() {
         translate[1] = newy;
       }
     } else if (scale < 4) { // Else use slacker bounds for slightly higher zoom levels
-      if ((translate[0] + xwidth > 0 && dx < 0) || (translate[0] < xlimit[2] - 200 && dx > 0)) {
+      if ((translate[0] + xwidth > 0 && dx < 0) || (translate[0] * scale < xlimit[2] - 200 && dx > 0)) {
         translate[0] = newx;
       }
-      if ((translate[1] + ywidth > 0 && dy < 0) || (translate[1] < ylimit[2] - 200 && dy > 0)) {
+      if ((translate[1] + ywidth > 0 && dy < 0) || (translate[1] * scale < ylimit[2] - 200 && dy > 0)) {
         translate[1] = newy;
       }
 
