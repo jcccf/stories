@@ -181,6 +181,7 @@ class StorylinesController < ApplicationController
         storyline.root = true
         storyline.save
       end
+      WebsocketRails[:story].trigger 'new', { :line => storyline.line, :prev => previous.id, :real_id => storyline.id }
       previous = storyline
       first_line ||= storyline
     end
@@ -199,6 +200,7 @@ class StorylinesController < ApplicationController
     @first_line, @storyline, lines, ids = insert_lines @storyline
     respond_to do |format|
       if @storyline.save
+        WebsocketRails[:story].trigger 'new', @storyline
         format.js
         format.html { redirect_to storyline_path(@first_line, :prev_end => rand_prev), notice: 'Storyline was successfully created.' }
         format.json { render json: [@first_line], status: :created, location: @first_line }

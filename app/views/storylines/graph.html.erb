@@ -6,7 +6,6 @@
 <%= javascript_include_tag "colorbrewer" %>
 
 <script>
-
 // To fade out controls when the mouse/finger is idle for 10 seconds
 $().ready(function() {
   var timer;
@@ -38,6 +37,7 @@ function d3viz() {
   
   // For use in updating the graph from server
   var real_to_index = {}; // Hash from real id to the index of that node
+  var self_added_lines = {}; // TODO Need something better than this to avoid WebSockets double creation. If someone else adds the exact same text, it won't show.
   
   //
   // Add/Edit Nodes
@@ -53,6 +53,7 @@ function d3viz() {
         jnodes.push({"name": "+", "group": jnodes[activeNode.parentIndex].group+1, "stroke": 2, "parentIndex": nodeIndex, "dashed": true});
         jlinks.push({"source": nodeIndex, "target": jnodes.length-1, "value":  0.8 + ($('#edit_dialog_text').val().length+50)/100});
         // Update
+        self_added_lines[$('#edit_dialog_text').val()] = true; // Prevent WebSockets from creating this node again
         $.post("<%= graph_add_storylines_path %>",
           { "parent_id": jnodes[activeNode.parentIndex].real_id, "line": $('#edit_dialog_text').val() },
           function(data) {
@@ -208,6 +209,39 @@ function d3viz() {
     });
     supdate();
   });
+
+  // WebSockets Support
+  var dispatcher = new WebSocketRails('localhost:3000/websocket');
+  channel = dispatcher.subscribe('story');
+  channel.bind('new', function(post) {
+    console.log('a new line '+post.line+' (prev id '+post.prev+') arrived!');
+    if (!(post.real_id in real_to_index) && (post.prev in real_to_index) && !(post.line in self_added_lines)) { // If we haven't seen this node before (prevent adding to self)
+      console.log(real_to_index);
+      console.log(post);
+      
+      // Add the node
+      var prevNode = jnodes[real_to_index[post.prev]]; // Get previous node
+      var node = { "chargeless": true, "real_id": post.real_id, "name": post.line, "is_new": true, "group": prevNode.group + 1, "stroke": 2 };
+      jnodes.push(node);
+      real_to_index[node.real_id] = jnodes.length - 1;
+      
+      // Add + Node
+      jnodes.push({ "chargeless": true, "name": "+", "group": node.group, "stroke": 2, "real_id": node.real_id, "parentIndex": real_to_index[node.real_id], "dashed": true})
+      jlinks.push({ "source": real_to_index[node.real_id], "target": jnodes.length-1, "value": 0.8 + (node.name.length+50)/100 });
+
+      // Add the link
+      jlinks.push({ "source": real_to_index[post.prev], "target": real_to_index[node.real_id] , "value": 2 + node.name.length / 50 });
+      force.charge(function(d) { 
+        if (d.chargeless) {
+          d.chargeless = false;
+          return 0;
+        } else {
+          if (d.dashed) return -5000; else return -5000/(d.group/2+1);        
+        }
+      })
+      supdate();
+    }
+  });
   
   // Grabs a new JSON, determines which nodes are new and adds them to the existing graph
   var jsonUpdateTimeout = null;
@@ -297,23 +331,13 @@ function d3viz() {
 
   function updateHelper() {
     // Set Circle
-    nodeCircles
+    var transitionNodeCircles = nodeCircles
       .attr("class", "circle")
       .attr("r", 50)
       .attr("fill", "white")
       .attr("stroke", function(d) { return color(d.group); })
       .attr("stroke-width", function(d) { return d.stroke+"px"; })
-      .attr("stroke-dasharray", function(d) { if (d.dashed) return "5 3"; } )
-      .transition().duration(1000).attr("stroke", function(d) { 
-        if (d.is_new) {
-          d.is_new = false;
-          return "rgb(0,0,0)";
-        }
-        else {
-          return color(d.group);
-        }
-      })
-      .transition().delay(1000).duration(10000).attr("stroke", function(d) { return color(d.group); }); // Transition to highlight new nodes in black
+      .attr("stroke-dasharray", function(d) { if (d.dashed) return "5 3"; } );
     if (isiPad) {
       nodeCircles.on("touchend", openEditDialog).on("click", openEditDialog);
     }
@@ -352,12 +376,41 @@ function d3viz() {
        var tempNode = textElt.append("svg:tspan").text(tempWords).attr("dy", "1em").attr("x", 0);
        index += numWords;
       }
-      d.radius = Math.max(textElt.node().getBBox().width, textElt.node().getBBox().height)*1.1 / 2 + 8;
+
+      // Set initial radius for new nodes to be small at first
+      if (d.is_new) {
+        d.radius = 10;
+        d.true_radius = Math.max(textElt.node().getBBox().width, textElt.node().getBBox().height)*1.1 / 2 + 8;
+      } else {
+        d.radius = Math.max(textElt.node().getBBox().width, textElt.node().getBBox().height)*1.1 / 2 + 8;        
+      }
     });
    
     // Set Real Radius (can only do this after we've determined how large the text box is)
-    node.selectAll("circle").attr("r", function(d) { return d.radius; } );
+    nodeCircles.attr("r", function(d) { 
+      return d.radius;        
+    });
+
+    // Animate Radius Increase For New Nodes
+    transitionNodeCircles.transition().duration(1000).attr("r", function(d) {
+      if (d.is_new) {
+        d.radius = d.true_radius;
+      }
+      return d.radius;
+    }).transition().duration(1000).attr("stroke", function(d) { 
+      if (d.is_new) {
+        return "rgb(0,0,0)";
+      }
+      else {
+        return color(d.group);
+      }
+    })
+    .transition().delay(1000).duration(10000).attr("stroke", function(d) { return color(d.group); }); // Transition to highlight new nodes in black;
    
+    nodeCircles.selectAll().each(function(d) {
+      d.is_new = false;
+    });
+
     // Set Arc
     nodePaths
       .attr("d", d3.svg.arc()
@@ -369,7 +422,7 @@ function d3viz() {
       
     // Animate Age
     nodePaths.transition().duration(function(d) { return (1.0-d.age) * 60000; }).attrTween("d", function(d) { 
-        console.log(d.age);
+        // console.log(d.age);
         var start = 0;
         if (d.age) start = Math.max(0, 1-d.age);
         var i = d3.interpolateNumber(start, 0);
@@ -398,7 +451,7 @@ d3viz();
 
 <div id="graph_navigation">
   <div id="recenter"><%= image_tag("center.svg", :border => 0) %></div>
-  <div id="loading"><%= image_tag("refresh.svg", :border => 0) %></div>
+  <!-- <div id="loading"><%= image_tag("refresh.svg", :border => 0) %></div> -->
 </div>
 
 <footer class="floating_footer">

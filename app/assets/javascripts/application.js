@@ -15,9 +15,11 @@
 //= require jquery-ui
 //= require jquery.purr
 //= require best_in_place
+//= require websocket_rails/main
 //= require_tree .
 
 $(document).ready(function() {
   /* Activating Best In Place */
   jQuery(".best_in_place").best_in_place();
 });
+

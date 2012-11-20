@@ -41,6 +41,7 @@ gem 'tactful_tokenizer'
 gem 'best_in_place'
 gem 'amatch'
 gem 'mysql2'
+gem 'websocket-rails'
 
 group :production do
   gem 'coffeebeans'
