@@ -43,6 +43,9 @@ function d3viz() {
   // Add/Edit Nodes
   //
   var activeNode = null, click_time = 0;
+  var startNode = null, endNode = null;
+  var lineData = []; // Stores backing line coordinates
+  var line = d3.svg.line().x(function(d) { return d[0] }).y(function(d) { return d[1] }).interpolate('linear');
   $().ready(function() {  
     $('#edit_dialog').hide();
     $('#edit_dialog_button').click(function() {
@@ -94,6 +97,56 @@ function d3viz() {
       $('#edit_dialog').hide();
     });
   });
+
+  //
+  // Connect Nodes Together By Dragging a Line From One to The Other
+  //
+  $().ready(function() {
+    // Connect two nodes to each other
+    // Line dragging in the background
+    $("svg").bind('mouseup', function(e) {
+      startNode = null;
+      endNode = null;
+      visback.selectAll('path.mylines').remove();
+    });
+    $("#viz_wrapper").bind('mousemove', function(e) {
+      if (startNode != null) {
+        var transString = $('svg g.main').attr('transform');
+        $('svg g.back').attr('transform', transString);
+        var regex = /translate\(([\-\d\.]+),([\-\d\.]+)\)scale\(([\-\d\.]+)\)/g;
+        var matches = regex.exec(transString);
+        console.log(transString);
+        if (matches == null) {
+          lineData[1] = [e.offsetX, e.offsetY];
+        } else {
+          lineData[1] = [(e.offsetX - parseInt(matches[1])) / parseFloat(matches[3]), (e.offsetY - parseInt(matches[2])) / parseFloat(matches[3])];
+        }
+        visback.selectAll('path.mylines').attr('d', line(lineData));
+        // console.log(lineData[1]);
+      }
+    });
+  });
+  function nodeMouseDown(d) {
+    startNode = d;
+    lineData[0] = [startNode.x, startNode.y];
+    visback.selectAll('path.mylines').data([lineData]).enter().append('path').attr("stroke", "maroon").attr("stroke-width", 1).attr('class', 'mylines');
+    console.log("down" + d.name);
+  }
+  function nodeMouseUp(d) {
+    // TODO Make this work on the iPad
+    // TODO Update the DB with this link
+    // TODO Don't allow self-loops or existing links
+    // TODO Dynamic link length - now it's either too long or too short
+    endNode = d;
+    console.log("up" + d.name);
+    jlinks.push({"source": real_to_index[startNode.real_id], "target": real_to_index[endNode.real_id], "value": 5});
+    supdate();
+    startNode = null; endNode = null;
+  }
+
+  //
+  // Dialog Box Functionality
+  //
   function openEditDialog(d) {
     activeNode = d;
     if (activeNode.dashed) {
@@ -128,6 +181,21 @@ function d3viz() {
   }
 
   //
+  // Top Left Icon Functionality
+  //
+  $().ready(function() {
+    $('#recenter').live('click', function() {
+      xlate = [(-jnodes[0].x)*scaly + $('svg').width()/2, (-jnodes[0].y)*scaly + $('svg').height()/2];
+      vis.attr("transform", "translate("+xlate+")scale(" + scaly + ")");
+      zoomy.translate(xlate);
+    });
+    $('#drag').live('click', function() {
+      // TODO Allow toggling of node dragging
+      supdate(true);
+    });
+  });
+
+  //
   // D3 Starts Here! Original code courtesy of http://bl.ocks.org/1846692
   //
   var w = 1280,
@@ -156,19 +224,14 @@ function d3viz() {
         ")scale(" + d3.event.scale + ")");
       scaly = d3.event.scale;
     });
-  $().ready(function() {
-    $('#recenter').live('click', function() {
-      xlate = [(-jnodes[0].x)*scaly + $('svg').width()/2, (-jnodes[0].y)*scaly + $('svg').height()/2];
-      vis.attr("transform", "translate("+xlate+")scale(" + scaly + ")");
-      zoomy.translate(xlate);
-    });
-  });
+
   vis.append("rect") 
     .attr("width", "100%") 
     .attr("height", "100%") 
     .attr("fill", "#fcfcfc") 
     .call(zoomy);
-  vis = vis.append("g");
+  var visback = vis.append("g").attr('class', 'back'); // Layer behind nodes and lines
+  vis = vis.append("g").attr('class', 'main');
 
   // Force Layout
   var force = self.force = d3.layout.force()
@@ -210,7 +273,9 @@ function d3viz() {
     supdate();
   });
 
+  //
   // WebSockets Support
+  //
   var dispatcher = new WebSocketRails('localhost:3000/websocket');
   channel = dispatcher.subscribe('story');
   channel.bind('new', function(post) {
@@ -243,7 +308,9 @@ function d3viz() {
     }
   });
   
-  // Grabs a new JSON, determines which nodes are new and adds them to the existing graph
+  //
+  // Grabs a new JSON, determines which nodes are new and adds them to the existing graph (Alternative to WebSockets)
+  //
   var jsonUpdateTimeout = null;
   function jsonUpdate() {
     d3.json("<%= storyline_path(@storyline, :format => 'json') %>", function(json) {
@@ -283,7 +350,12 @@ function d3viz() {
     });    
   });
 
-  function supdate() {
+  //
+  // Node and Edge Update Helpers
+  //
+  function supdate(draggableNodes) {
+    if (typeof(draggableNodes) === 'undefined') draggableNodes = false;
+
     force.nodes(jnodes).links(jlinks).start(); // Restart force layout
 
     // Link Additions
@@ -303,8 +375,12 @@ function d3viz() {
     node = vis.selectAll("g.node")
       .data(jnodes)
       .enter().append("svg:g")
-      .attr("class", "node")
-      .call(force.drag);
+      .attr("class", "node");
+    
+    if (draggableNodes) {
+      node.call(force.drag);
+    }
+
     nodeCircles = node.append("circle");
     nodePaths = node.append("path");
     updateHelper();
@@ -312,7 +388,12 @@ function d3viz() {
   
     // Node Updates
     node = vis.selectAll("g.node")
-      .data(jnodes).call(force.drag);
+      .data(jnodes);
+
+    if (draggableNodes) {
+      node.call(force.drag);
+    }
+
     nodeCircles = node.selectAll("circle");
     nodePaths = node.selectAll("path");
     updateHelper();
@@ -344,6 +425,17 @@ function d3viz() {
     else {
       nodeCircles.on("click", openEditDialog);
     }
+
+    // Connect two nodes to each other
+    nodeCircles.on("mousedown", nodeMouseDown);
+    nodeCircles.on("mouseup", nodeMouseUp);
+
+    // Highlight on mouseover
+    nodeCircles.on("mouseover", function(d) {
+      var selectedNode = d3.select(this);
+      selectedNode.transition().duration(100).style("stroke", "orange");
+      selectedNode.transition().delay(400).duration(600).style("stroke", color(d.group));
+    });
   
     node.selectAll("text").remove(); // Clear all existing text
   
@@ -450,7 +542,8 @@ d3viz();
 </div>
 
 <div id="graph_navigation">
-  <div id="recenter"><%= image_tag("center.svg", :border => 0) %></div>
+  <div id="recenter" title="Center"><%= image_tag("center.svg", :border => 0) %></div>
+  <div id="drag" title="Enable Dragging"><%= image_tag("move.svg", :border => 0) %></div>
   <!-- <div id="loading"><%= image_tag("refresh.svg", :border => 0) %></div> -->
 </div>
 
