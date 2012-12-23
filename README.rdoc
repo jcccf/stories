@@ -2,6 +2,10 @@
 
 The source code for http://www.storeys.me
 
+== Thin Help
+* You might need to run ``bundle update`` on the server by yourself.
+* Remember to create ``shared/pids`` in your application directory.
+
 == The MIT License
 
 Copyright (c) 2012 Justin Cheng

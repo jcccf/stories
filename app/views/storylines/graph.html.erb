@@ -276,7 +276,7 @@ function d3viz() {
   //
   // WebSockets Support
   //
-  var dispatcher = new WebSocketRails('localhost:3000/websocket');
+  var dispatcher = new WebSocketRails('<%= Stories::Application.config.base_url %>/websocket');
   channel = dispatcher.subscribe('story');
   channel.bind('new', function(post) {
     console.log('a new line '+post.line+' (prev id '+post.prev+') arrived!');

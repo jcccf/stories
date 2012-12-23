@@ -36,4 +36,6 @@ Stories::Application.configure do
 
   # Expands the lines which load the assets
   config.assets.debug = true
+
+  config.base_url = "localhost:3000"
 end
