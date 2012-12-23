@@ -41,6 +41,7 @@ gem 'tactful_tokenizer'
 gem 'best_in_place'
 gem 'amatch'
 gem 'mysql2'
+gem 'thin'
 gem 'websocket-rails'
 
 group :production do
