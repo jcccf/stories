@@ -18,3 +18,4 @@
 
 config/database.yml
 config/deploy.rb
+config/deploy_passenger.rb

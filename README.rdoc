@@ -2,9 +2,14 @@
 
 The source code for http://www.storeys.me
 
-== Thin Help
-* You might need to run ``bundle update`` on the server by yourself.
-* Remember to create ``shared/pids`` in your application directory.
+== Installation
+Your best bet is to use Capistrano to deploy Storeys to thin. Use ``config/deploy.rb.sample``, updating the paths and URLs as required, then renaming this to ``config/deploy.rb``. (You can also deploy to passenger using ``config/deploy_passenger.rb.sample``, although websockets won't be supported.)
+
+Some configuration will be required to get Websockets working properly if you're reverse proxying to thin. In particular, ``your_storeys_url/websocket`` must be properly reverse-proxied, something nginx can't do just yet as it doesn't support server-side HTTP 1.1 in the way we want. For example, you might consider placing varnish in front of nginx and reverse proxy that particular URL directly to thin, and letting nginx reverse proxy all other urls to thin.
+
+-- Other Notes
+* You might need to run ``bundle update`` on the server.
+* Remember to create ``shared/pids`` and ``shared/logs`` in your application directory.
 
 == The MIT License
 

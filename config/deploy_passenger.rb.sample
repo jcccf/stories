@@ -14,7 +14,7 @@ set :application, "Storeys"
 set :scm, 'git'
 set :repository,  "ssh://username@domain/path/to/stories.git"
 set :git_enable_submodules, 1 # if you have vendored rails
-set :branch, 'websockets'
+set :branch, 'master'
 set :git_shallow_clone, 1
 set :scm_verbose, true
 
@@ -27,31 +27,17 @@ set :deploy_via, :export
 
 ssh_options[:keys] = %w(/home/user/.ssh/id_rsa) 
 
-# Generate an additional task to fire up the thin clusters
+# Passenger
 namespace :deploy do
-  desc "Start the Thin processes"
-  task :start do
-    run  <<-CMD
-      cd /path/to/application/current; bundle exec thin start -C config/thin.yml
-    CMD
-  end
-
-  desc "Stop the Thin processes"
-  task :stop do
-    run <<-CMD
-      cd /path/to/application/current; bundle exec thin stop -C config/thin.yml
-    CMD
-  end
-
-  desc "Restart the Thin processes"
-  task :restart do
-    run <<-CMD
-      cd /path/to/application/current; bundle exec thin restart -C config/thin.yml
-    CMD
+  task :start do ; end
+  task :stop do ; end
+  task :restart, :roles => :app, :except => { :no_release => true } do
+    run "#{try_sudo} touch #{File.join(current_path,'tmp','restart.txt')}"
   end
 end
 
 # Symlink database.yml on the server
+# You need to create /shared/config/database.yml on the deployment server
 namespace :deploy do
   desc "Symlinks the database.yml"
   task :symlink_db, :roles => :app do
@@ -59,5 +45,4 @@ namespace :deploy do
   end
 end
 
-# Define all the tasks that need to be running manually after Capistrano is finished.
-before 'deploy:assets:precompile', 'deploy:symlink_db'
+after 'deploy:update_code', 'deploy:symlink_db'
