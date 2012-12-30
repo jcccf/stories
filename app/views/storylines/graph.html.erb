@@ -134,13 +134,17 @@ function d3viz() {
   }
   function nodeMouseUp(d) {
     // TODO Make this work on the iPad
-    // TODO Update the DB with this link
-    // TODO Don't allow self-loops or existing links
+    // TODO Don't allow existing links
     // TODO Dynamic link length - now it's either too long or too short
     endNode = d;
     console.log("up" + d.name);
-    jlinks.push({"source": real_to_index[startNode.real_id], "target": real_to_index[endNode.real_id], "value": 5});
-    supdate();
+    if (startNode != endNode) { // Prevent self-loops
+      // Add link in d3
+      jlinks.push({"source": real_to_index[startNode.real_id], "target": real_to_index[endNode.real_id], "value": 5});
+      supdate();
+      // Post to server
+      $.post("<%= graph_link_storylines_path %>", { "from_id": startNode.real_id, "to_id": endNode.real_id }, function(data) {});
+    }
     startNode = null; endNode = null;
   }
 

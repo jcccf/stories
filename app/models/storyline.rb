@@ -205,9 +205,15 @@ class Storyline < ActiveRecord::Base
     end
   end
   
+  # Only a temporary link!
   def self.link(first, second)
     first.next = second.id
     second.prev = first.id
+  end
+
+  # Permanently link
+  def self.add_link(first, second)
+    StorylineLinks.where(:from_id => first.id, :to_id => second.id).first_or_create
   end
   
 end

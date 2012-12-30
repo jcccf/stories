@@ -130,6 +130,12 @@ class StorylinesController < ApplicationController
     storyline.line = params[:line]
     storyline.save
   end
+
+  def graph_link
+    from_line = Storyline.find(params[:from_id])
+    to_line = Storyline.find(params[:to_id])
+    Storyline.add_link(from_line, to_line) if from_line && to_line
+  end
   
   # GET /storylines/1/upvote
   def upvote

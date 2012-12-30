@@ -21,6 +21,7 @@ Stories::Application.routes.draw do
       get 'latest'
       post 'graph_update'
       post 'graph_add'
+      post 'graph_link'
     end
   end
   
