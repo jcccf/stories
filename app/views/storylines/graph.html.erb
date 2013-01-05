@@ -2,7 +2,7 @@
 
 <div id="viz_wrapper"></div>
 
-<%= javascript_include_tag "d3mod" %>
+<%= javascript_include_tag "d3.v3.min" %>
 <%= javascript_include_tag "colorbrewer" %>
 
 <script>
@@ -42,6 +42,7 @@ function d3viz() {
   //
   // Add/Edit Nodes
   //
+  var isDraggable = false; // Whether we're in node-draggable mode or node link creation mode
   var activeNode = null, click_time = 0;
   var startNode = null, endNode = null;
   var lineData = []; // Stores backing line coordinates
@@ -110,12 +111,12 @@ function d3viz() {
       visback.selectAll('path.mylines').remove();
     });
     $("#viz_wrapper").bind('mousemove', function(e) {
-      if (startNode != null) {
+      if (!isDraggable && startNode != null) {
         var transString = $('svg g.main').attr('transform');
         $('svg g.back').attr('transform', transString);
         var regex = /translate\(([\-\d\.]+),([\-\d\.]+)\)scale\(([\-\d\.]+)\)/g;
         var matches = regex.exec(transString);
-        console.log(transString);
+        // console.log(transString);
         if (matches == null) {
           lineData[1] = [e.offsetX, e.offsetY];
         } else {
@@ -127,25 +128,29 @@ function d3viz() {
     });
   });
   function nodeMouseDown(d) {
-    startNode = d;
-    lineData[0] = [startNode.x, startNode.y];
-    visback.selectAll('path.mylines').data([lineData]).enter().append('path').attr("stroke", "maroon").attr("stroke-width", 1).attr('class', 'mylines');
-    console.log("down" + d.name);
+    if (!isDraggable) {
+      startNode = d;
+      lineData[0] = [startNode.x, startNode.y];
+      visback.selectAll('path.mylines').data([lineData]).enter().append('path').attr("stroke", "maroon").attr("stroke-width", 1).attr('class', 'mylines');
+      console.log("down" + d.name);      
+    }
   }
   function nodeMouseUp(d) {
     // TODO Make this work on the iPad
     // TODO Don't allow existing links
     // TODO Dynamic link length - now it's either too long or too short
-    endNode = d;
-    console.log("up" + d.name);
-    if (startNode != endNode) { // Prevent self-loops
-      // Add link in d3
-      jlinks.push({"source": real_to_index[startNode.real_id], "target": real_to_index[endNode.real_id], "value": 5});
-      supdate();
-      // Post to server
-      $.post("<%= graph_link_storylines_path %>", { "from_id": startNode.real_id, "to_id": endNode.real_id }, function(data) {});
+    if (!isDraggable) {
+      endNode = d;
+      console.log("up" + d.name);
+      if (startNode != endNode) { // Prevent self-loops
+        // Add link in d3
+        jlinks.push({"source": real_to_index[startNode.real_id], "target": real_to_index[endNode.real_id], "value": 5});
+        supdate();
+        // Post to server
+        $.post("<%= graph_link_storylines_path %>", { "from_id": startNode.real_id, "to_id": endNode.real_id }, function(data) {});
+      }
+      startNode = null; endNode = null;
     }
-    startNode = null; endNode = null;
   }
 
   //
@@ -195,7 +200,14 @@ function d3viz() {
     });
     $('#drag').live('click', function() {
       // TODO Allow toggling of node dragging
-      supdate(true);
+      if (isDraggable) {
+        isDraggable = false;
+        supdate(false);
+        alert("disabled!");
+      } else {
+        isDraggable = true;
+        supdate(true);        
+      }
     });
   });
 
@@ -216,12 +228,12 @@ function d3viz() {
   // Pan and Zoom http://groups.google.com/group/d3-js/browse_thread/thread/346e75ba083fba4b
   var scaly = 1.0;
   var zoomy = d3.behavior.zoom()
-    .xExtent(function() {
-      range = d3.extent(jnodes, function(d) { return d.x }); return [range[0], range[1], $('#viz_wrapper').width()]; 
-    } )
-    .yExtent(function() {
-      range = d3.extent(jnodes, function(d) { return d.y }); return [range[0], range[1], $('#viz_wrapper').height()];
-    } )
+    // .xExtent(function() {
+    //   range = d3.extent(jnodes, function(d) { return d.x }); return [range[0], range[1], $('#viz_wrapper').width()]; 
+    // } )
+    // .yExtent(function() {
+    //   range = d3.extent(jnodes, function(d) { return d.y }); return [range[0], range[1], $('#viz_wrapper').height()];
+    // } )
     .scaleExtent([1.0/8, 8])
     .on("zoom", function() {
       vis.attr("transform", "translate(" + d3.event.translate + 
@@ -383,6 +395,9 @@ function d3viz() {
     
     if (draggableNodes) {
       node.call(force.drag);
+    } else { // Alternatively, https://groups.google.com/forum/?fromgroups=#!topic/d3-js/-HcNN1deSow
+      node.on("mousedown.drag", null);
+      node.on("touchstart.drag", null);      
     }
 
     nodeCircles = node.append("circle");
@@ -396,6 +411,9 @@ function d3viz() {
 
     if (draggableNodes) {
       node.call(force.drag);
+    } else {
+      node.on("mousedown.drag", null);
+      node.on("touchstart.drag", null);      
     }
 
     nodeCircles = node.selectAll("circle");

@@ -160,6 +160,7 @@ class Storyline < ActiveRecord::Base
     id_to_index, counter = {}, 0
     data = { :nodes => [], :links => Set.new }
     lines_to_examine = [[self, 0]]
+    links_created = Set.new
     while lines_to_examine.size > 0
       line, group = lines_to_examine.shift
       if !id_to_index.include? line.id
@@ -171,15 +172,25 @@ class Storyline < ActiveRecord::Base
         data[:nodes] << { :name => "+", :group => group, :stroke => 2, :real_id => line.id, :parentIndex => id_to_index[line.id], :dashed => true }
         data[:links] << { :source => id_to_index[line.id], :target => id_to_index[line.id]+1, :value => 0.8 + ((line.line.size+50)/100) }
         counter += 1
-        
+
       end
       line.prev_links.each do |link|
         if id_to_index.include? link.from_id
-          data[:links] << { :source => id_to_index[link.from_id], :target => id_to_index[link.to_id], :value => 2 + (line.line.size/50) }
+          data[:links] << { :real_source => link.from_id, :real_target => link.to_id, :source => id_to_index[link.from_id], :target => id_to_index[link.to_id], :value => 2 + (line.line.size/50) }
+          links_created << [link.from_id, link.to_id]
         end
       end
       line.next_links.each do |link|
-        lines_to_examine << [link.to_line, group+1] unless id_to_index.include? link.to_id
+        # Examine the subsequent line if we haven't seen it before
+        if id_to_index.include? link.to_id
+          # But, might need to create additional links since later lines can point to earlier lines
+          unless links_created.include? [link.from_id, link.to_id]
+            data[:links] << { :real_source => link.from_id, :real_target => link.to_id, :source => id_to_index[link.from_id], :target => id_to_index[link.to_id], :value => 2 + (line.line.size/50) }
+            links_created << [link.from_id, link.to_id]
+          end
+        else
+          lines_to_examine << [link.to_line, group+1]
+        end
       end
     end
     data[:links] = data[:links].to_a
