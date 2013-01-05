@@ -203,7 +203,7 @@ function d3viz() {
       if (isDraggable) {
         isDraggable = false;
         supdate(false);
-        alert("disabled!");
+        // alert("disabled!");
       } else {
         isDraggable = true;
         supdate(true);        
@@ -218,8 +218,8 @@ function d3viz() {
       h = 720,
       color = <%= @graph_theme %>,
       jnodes, jlinks,
-      link, node,
-      nodeCircles, nodePaths, linkObjs;
+      link, node, trilink,
+      nodeCircles, nodePaths, linkObjs, trilinkObjs;
   
   var vis = d3.select("#viz_wrapper").append("svg:svg")
       .attr("width", "100%")
@@ -260,6 +260,27 @@ function d3viz() {
         .attr("y1", function(d) { return d.source.y; })
         .attr("x2", function(d) { return d.target.x; })
         .attr("y2", function(d) { return d.target.y; });
+
+    trilink.attr("class", "tlink")
+      .attr('d', function(d) { 
+        var x = (d.source.x + d.target.x)/2, y = (d.source.y + d.target.y)/2;
+        if (!d.target.dashed) {
+          return 'M ' + x +' '+ y + ' l 4 4 l -8 0 z';
+        } else {
+          return 'M 0 0 z';
+        }
+      })
+      .attr("transform", function(d) {
+        var x = (d.source.x + d.target.x)/2, y = (d.source.y + d.target.y)/2;
+        var deg = Math.atan((d.target.y - d.source.y) / (d.target.x - d.source.x)) * 180 / Math.PI;
+        if (d.target.x < d.source.x) {
+          deg -= 90;
+        } else {
+          deg += 90;
+        }
+        return "rotate("+deg+", "+x+", "+y+")";
+      });
+
     // node.attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; });
     node.attr("transform", function(d) {
       if(d.index==0){
@@ -387,6 +408,19 @@ function d3viz() {
       .selectAll("line");
     linkUpdateHelper();
 
+    // Link Triangles Additions
+    trilinkObjs = vis.selectAll("path.tlink")
+      .data(jlinks)
+      .enter().insert("path", ":first-child");
+    trilinkUpdateHelper();
+    vis.selectAll("path.tlink").data(jlinks).exit().remove();
+
+    // Link Triangles Updates
+    trilinkObjs = vis.selectAll("path.tlink")
+      .data(jlinks)
+      .selectAll("path");
+    trilinkUpdateHelper();
+
     // Node Additions
     node = vis.selectAll("g.node")
       .data(jnodes)
@@ -420,7 +454,8 @@ function d3viz() {
     nodePaths = node.selectAll("path");
     updateHelper();
 
-    link = vis.selectAll("line.link");  
+    link = vis.selectAll("line.link");
+    trilink = vis.selectAll("path.tlink");
     node = vis.selectAll("g.node");
   }
 
@@ -430,6 +465,28 @@ function d3viz() {
       .attr("y1", function(d) { return d.source.y; })
       .attr("x2", function(d) { return d.target.x; })
       .attr("y2", function(d) { return d.target.y; });
+  }
+
+  function trilinkUpdateHelper() {
+    trilinkObjs.attr("class", "tlink")
+      .attr('d', function(d) { 
+        var x = (d.source.x + d.target.x)/2, y = (d.source.y + d.target.y)/2;
+        if (!d.target.dashed) {
+          return 'M ' + x +' '+ y + ' l 4 4 l -8 0 z';
+        } else {
+          return 'M 0 0 z';
+        }
+      })
+      .attr("transform", function(d) {
+        var x = (d.source.x + d.target.x)/2, y = (d.source.y + d.target.y)/2;
+        var deg = Math.atan((d.target.y - d.source.y) / (d.target.x - d.source.x)) * 180 / Math.PI;
+        if (d.target.x < d.source.x) {
+          deg -= 90;
+        } else {
+          deg += 90;
+        }
+        return "rotate("+deg+", "+x+", "+y+")";
+      });
   }
 
   function updateHelper() {

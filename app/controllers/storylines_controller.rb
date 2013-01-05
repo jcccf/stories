@@ -187,7 +187,7 @@ class StorylinesController < ApplicationController
         storyline.root = true
         storyline.save
       end
-      WebsocketRails[:story].trigger 'new', { :line => storyline.line, :prev => previous.id, :real_id => storyline.id }
+      WebsocketRails[:story].trigger 'new', { :line => storyline.line, :prev => previous.id, :real_id => storyline.id } unless previous.nil?
       previous = storyline
       first_line ||= storyline
     end
