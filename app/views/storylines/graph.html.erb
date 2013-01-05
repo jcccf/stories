@@ -54,7 +54,7 @@ function d3viz() {
         jnodes.push({"name": $('#edit_dialog_text').val(), "group": jnodes[activeNode.parentIndex].group+1, "stroke": 2, "age": 0.01}); // Must be > 0 because 0 is false in Javascript
         var nodeIndex = jnodes.length - 1;
         jlinks.push({"source": activeNode.parentIndex, "target": nodeIndex, "value": 2 + ($('#edit_dialog_text').val().length/50)});
-        jnodes.push({"name": "+", "group": jnodes[activeNode.parentIndex].group+1, "stroke": 2, "parentIndex": nodeIndex, "dashed": true});
+        jnodes.push({"name": "+", "group": jnodes[activeNode.parentIndex].group+1, "stroke": 2, "real_id": "p"+nodeIndex, "parentIndex": nodeIndex, "dashed": true});
         jlinks.push({"source": nodeIndex, "target": jnodes.length-1, "value":  0.8 + ($('#edit_dialog_text').val().length+50)/100});
         // Update
         self_added_lines[$('#edit_dialog_text').val()] = true; // Prevent WebSockets from creating this node again
@@ -73,7 +73,7 @@ function d3viz() {
                 var newIndex = jnodes.length - 1;
                 real_to_index[data.ids[i]] = newIndex;
                 jlinks.push({"source": lastIndex, "target": newIndex, "value": 2 + (data.lines[i].length/50)});
-                jnodes.push({"name": "+", "group": jnodes[lastIndex].group+1, "stroke": 2, "parentIndex": newIndex, "dashed": true});
+                jnodes.push({"name": "+", "group": jnodes[lastIndex].group+1, "stroke": 2, "parentIndex": newIndex, "real_id": "p"+newIndex, "dashed": true});
                 jlinks.push({"source": newIndex, "target": jnodes.length-1, "value": 0.8 + (data.lines[i].length+50)/100});
                 lastIndex = newIndex;
               }
@@ -199,15 +199,24 @@ function d3viz() {
       zoomy.translate(xlate);
     });
     $('#drag').live('click', function() {
-      // TODO Allow toggling of node dragging
       if (isDraggable) {
+        $('#drag').html('<%= image_tag("move.svg", :border => 0) %>').attr('title', 'Switch to Dragging Mode');
         isDraggable = false;
         supdate(false);
         // alert("disabled!");
       } else {
+        $('#drag').html('<%= image_tag("link.svg", :border => 0) %>').attr('title', 'Switch to Linking Mode');
         isDraggable = true;
         supdate(true);        
       }
+    });
+    $("#collapse").live('click', function() {
+      if(!jnodes[0].hide) {
+        jnodes[0].hide = true;        
+      } else {
+        jnodes[0].hide = false;
+      }
+      supdate();
     });
   });
 
@@ -328,7 +337,7 @@ function d3viz() {
       real_to_index[node.real_id] = jnodes.length - 1;
       
       // Add + Node
-      jnodes.push({ "chargeless": true, "name": "+", "group": node.group, "stroke": 2, "real_id": node.real_id, "parentIndex": real_to_index[node.real_id], "dashed": true})
+      jnodes.push({ "chargeless": true, "name": "+", "group": node.group, "stroke": 2, "real_id": "p"+node.real_id, "parentIndex": real_to_index[node.real_id], "dashed": true})
       jlinks.push({ "source": real_to_index[node.real_id], "target": jnodes.length-1, "value": 0.8 + (node.name.length+50)/100 });
 
       // Add the link
@@ -359,7 +368,7 @@ function d3viz() {
           real_to_index[node.real_id] = jnodes.length - 1;
           new_nodes[node.real_id] = true;
           // Add + Node
-          jnodes.push({ "name": "+", "group": node.group, "stroke": 2, "real_id": node.real_id, "parentIndex": real_to_index[node.real_id], "dashed": true})
+          jnodes.push({ "name": "+", "group": node.group, "stroke": 2, "real_id": "p"+node.real_id, "parentIndex": real_to_index[node.real_id], "dashed": true})
           jlinks.push({ "source": real_to_index[node.real_id], "target": jnodes.length-1, "value": 0.8 + (node.name.length+50)/100 })
         }
       });
@@ -393,6 +402,8 @@ function d3viz() {
   function supdate(draggableNodes) {
     if (typeof(draggableNodes) === 'undefined') draggableNodes = false;
 
+    var jnodes_temp = filterNodes();
+
     force.nodes(jnodes).links(jlinks).start(); // Restart force layout
 
     // Link Additions
@@ -423,7 +434,7 @@ function d3viz() {
 
     // Node Additions
     node = vis.selectAll("g.node")
-      .data(jnodes)
+      .data(jnodes_temp, function(d) { return d.real_id; })
       .enter().append("svg:g")
       .attr("class", "node");
     
@@ -437,11 +448,13 @@ function d3viz() {
     nodeCircles = node.append("circle");
     nodePaths = node.append("path");
     updateHelper();
-    vis.selectAll("g.node").data(jnodes).exit().remove();
+    vis.selectAll("g.node").data(jnodes_temp, function(d) { return d.real_id; }).exit().remove();
   
     // Node Updates
     node = vis.selectAll("g.node")
-      .data(jnodes);
+      .data(jnodes_temp, function(d) { return d.real_id; });
+
+    console.log(jnodes);
 
     if (draggableNodes) {
       node.call(force.drag);
@@ -457,6 +470,16 @@ function d3viz() {
     link = vis.selectAll("line.link");
     trilink = vis.selectAll("path.tlink");
     node = vis.selectAll("g.node");
+  }
+
+  function filterNodes() {
+    var tempNodes = [];
+    for (var i = 0; i < jnodes.length; i++) {
+      if (!jnodes[i].hide) {
+        tempNodes.push(jnodes[i]);
+      }
+    }
+    return tempNodes;
   }
 
   function linkUpdateHelper() {
@@ -623,6 +646,7 @@ d3viz();
 <div id="graph_navigation">
   <div id="recenter" title="Center"><%= image_tag("center.svg", :border => 0) %></div>
   <div id="drag" title="Enable Dragging"><%= image_tag("move.svg", :border => 0) %></div>
+  <div id="collapse" title="Collapse"><%= image_tag("sun.svg", :border => 0) %></div>
   <!-- <div id="loading"><%= image_tag("refresh.svg", :border => 0) %></div> -->
 </div>
 

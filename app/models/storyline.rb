@@ -169,7 +169,7 @@ class Storyline < ActiveRecord::Base
         data[:nodes] << { :name => line.line, :group => group, :stroke => (group > 0) ? 2 : 4, :real_id => line.id } # :age => 1
         
         # Add Plus
-        data[:nodes] << { :name => "+", :group => group, :stroke => 2, :real_id => line.id, :parentIndex => id_to_index[line.id], :dashed => true }
+        data[:nodes] << { :name => "+", :group => group, :stroke => 2, :real_id => "p" + line.id.to_s, :parent_id => line.id, :parentIndex => id_to_index[line.id], :dashed => true }
         data[:links] << { :source => id_to_index[line.id], :target => id_to_index[line.id]+1, :value => 0.8 + ((line.line.size+50)/100) }
         counter += 1
 
