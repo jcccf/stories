@@ -43,6 +43,7 @@ function d3viz() {
   // Add/Edit Nodes
   //
   var isDraggable = false; // Whether we're in node-draggable mode or node link creation mode
+  var isCollapsible = true;
   var activeNode = null, click_time = 0;
   var startNode = null, endNode = null;
   var lineData = []; // Stores backing line coordinates
@@ -190,6 +191,22 @@ function d3viz() {
   }
 
   //
+  // Collapsible Functionality
+  //
+  function collapseTree(d) {
+    // Make sure this node is not editable (age) and that it isn't a + node (dashed)
+    if (isCollapsible && startNode == null && !((d.age && d.age < 1)) && !d.dashed) {
+      if (!d.collapsed) {
+        d.collapsed = true;
+        supdate(isDraggable);
+      } else {
+        d.collapsed = false;
+        supdate(isDraggable);
+      }
+    }
+  }
+
+  //
   // Top Left Icon Functionality
   //
   $().ready(function() {
@@ -209,14 +226,6 @@ function d3viz() {
         isDraggable = true;
         supdate(true);        
       }
-    });
-    $("#collapse").live('click', function() {
-      if(!jnodes[0].hide) {
-        jnodes[0].hide = true;        
-      } else {
-        jnodes[0].hide = false;
-      }
-      supdate();
     });
   });
 
@@ -454,7 +463,7 @@ function d3viz() {
     node = vis.selectAll("g.node")
       .data(jnodes_temp, function(d) { return d.real_id; });
 
-    console.log(jnodes);
+    // console.log(jnodes);
 
     if (draggableNodes) {
       node.call(force.drag);
@@ -472,10 +481,21 @@ function d3viz() {
     node = vis.selectAll("g.node");
   }
 
+  // Hide collapsed nodes
   function filterNodes() {
     var tempNodes = [];
+    var filteredIndices = {}; // Nodes that got filtered
+    for (var j = 0; j < 2; j++) { // Do this filtering twice to cover the + nodes which may be listed first
+      for (var i = 0; i < jlinks.length; i++) {
+        var link = jlinks[i];
+        if (filteredIndices[link.source.index] == true || link.source.collapsed) {
+          filteredIndices[link.target.index] = true;
+        }
+      }
+    }
+    // Return the nodes that didn't get filtered
     for (var i = 0; i < jnodes.length; i++) {
-      if (!jnodes[i].hide) {
+      if (!filteredIndices[i]) {
         tempNodes.push(jnodes[i]);
       }
     }
@@ -513,12 +533,21 @@ function d3viz() {
   }
 
   function updateHelper() {
+
+    function nodeStrokeColor(d) {
+      if (d.collapsed) {
+        return d3.rgb(color(d.group)).brighter().toString();
+      } else {
+        return color(d.group);
+      }
+    }
+
     // Set Circle
     var transitionNodeCircles = nodeCircles
       .attr("class", "circle")
       .attr("r", 50)
       .attr("fill", "white")
-      .attr("stroke", function(d) { return color(d.group); })
+      .attr("stroke", nodeStrokeColor)
       .attr("stroke-width", function(d) { return d.stroke+"px"; })
       .attr("stroke-dasharray", function(d) { if (d.dashed) return "5 3"; } );
     if (isiPad) {
@@ -526,6 +555,7 @@ function d3viz() {
     }
     else {
       nodeCircles.on("click", openEditDialog);
+      nodeCircles.on("click.collapse", collapseTree);
     }
 
     // Connect two nodes to each other
@@ -536,7 +566,10 @@ function d3viz() {
     nodeCircles.on("mouseover", function(d) {
       var selectedNode = d3.select(this);
       selectedNode.transition().duration(100).style("stroke", "orange");
-      selectedNode.transition().delay(400).duration(600).style("stroke", color(d.group));
+    });
+    nodeCircles.on("mouseout", function(d) {
+      var selectedNode = d3.select(this);
+      selectedNode.transition().duration(200).style("stroke", nodeStrokeColor);
     });
   
     node.selectAll("text").remove(); // Clear all existing text
@@ -599,7 +632,7 @@ function d3viz() {
         return color(d.group);
       }
     })
-    .transition().delay(1000).duration(10000).attr("stroke", function(d) { return color(d.group); }); // Transition to highlight new nodes in black;
+    .transition().delay(1000).duration(10000).attr("stroke", nodeStrokeColor); // Transition to highlight new nodes in black;
    
     nodeCircles.selectAll().each(function(d) {
       d.is_new = false;
@@ -646,7 +679,7 @@ d3viz();
 <div id="graph_navigation">
   <div id="recenter" title="Center"><%= image_tag("center.svg", :border => 0) %></div>
   <div id="drag" title="Enable Dragging"><%= image_tag("move.svg", :border => 0) %></div>
-  <div id="collapse" title="Collapse"><%= image_tag("sun.svg", :border => 0) %></div>
+  <!-- <div id="collapse" title="Collapse"><%= image_tag("sun.svg", :border => 0) %></div> -->
   <!-- <div id="loading"><%= image_tag("refresh.svg", :border => 0) %></div> -->
 </div>
 
