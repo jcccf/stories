@@ -38,4 +38,6 @@ Stories::Application.configure do
   config.assets.debug = true
 
   config.base_url = "localhost:3000"
+
+  config.middleware.delete Rack::Lock
 end
