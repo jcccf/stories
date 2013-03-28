@@ -214,12 +214,12 @@ function d3viz() {
   // Top Left Icon Functionality
   //
   $().ready(function() {
-    $('#recenter').live('click', function() {
+    $('#recenter').on('click', function() {
       xlate = [(-jnodes[0].x)*scaly + $('svg').width()/2, (-jnodes[0].y)*scaly + $('svg').height()/2];
       vis.attr("transform", "translate("+xlate+")scale(" + scaly + ")");
       zoomy.translate(xlate);
     });
-    $('#drag').live('click', function() {
+    $('#drag').on('click', function() {
       if (isDraggable) {
         $('#drag').html('<%= image_tag("move.svg", :border => 0) %>').attr('title', 'Switch to Dragging Mode');
         isDraggable = false;

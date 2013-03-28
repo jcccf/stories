@@ -33,7 +33,7 @@ $ ->
     $('section').last().find('.storyline_actions a:eq(2)').click()
     e.stopPropagation() # Strange, why is this required?
     
-$('section').live 'click', ->
+$('body').on 'click', 'section', ->
   $('section').removeClass('active')
   $(this).addClass('active')
 
