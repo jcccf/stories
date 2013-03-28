@@ -44,6 +44,9 @@ gem 'mysql2'
 gem 'thin'
 gem 'websocket-rails'
 
+gem 'capistrano'
+gem 'rvm-capistrano'
+
 group :production do
   gem 'coffeebeans'
 end

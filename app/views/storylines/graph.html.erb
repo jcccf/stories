@@ -48,10 +48,12 @@ function d3viz() {
   var startNode = null, endNode = null;
   var lineData = []; // Stores backing line coordinates
   var line = d3.svg.line().x(function(d) { return d[0] }).y(function(d) { return d[1] }).interpolate('linear');
+  var pauseWebSockets = false;
   $().ready(function() {  
     $('#edit_dialog').hide();
     $('#edit_dialog_button').click(function() {
       if (activeNode.dashed) {
+        pauseWebSockets = true;
         jnodes.push({"name": $('#edit_dialog_text').val(), "group": jnodes[activeNode.parentIndex].group+1, "stroke": 2, "age": 0.01}); // Must be > 0 because 0 is false in Javascript
         var nodeIndex = jnodes.length - 1;
         jlinks.push({"source": activeNode.parentIndex, "target": nodeIndex, "value": 2 + ($('#edit_dialog_text').val().length/50)});
@@ -59,6 +61,7 @@ function d3viz() {
         jlinks.push({"source": nodeIndex, "target": jnodes.length-1, "value":  0.8 + ($('#edit_dialog_text').val().length+50)/100});
         // Update
         self_added_lines[$('#edit_dialog_text').val()] = true; // Prevent WebSockets from creating this node again
+        console.log(jnodes);
         $.post("<%= graph_add_storylines_path %>",
           { "parent_id": jnodes[activeNode.parentIndex].real_id, "line": $('#edit_dialog_text').val() },
           function(data) {
@@ -81,8 +84,9 @@ function d3viz() {
             }
             // Only redraw graph if new items were added
             if (!(data.lines[0] == $('#edit_dialog_text').val() && data.lines.length == 1)) {
-              supdate();
+              supdate(isDraggable);
             }
+            pauseWebSockets = false;
           }, "json");
       }
       else{
@@ -93,7 +97,7 @@ function d3viz() {
           function(data) { } );
       }
       $('#edit_dialog').hide();
-      supdate();
+      supdate(isDraggable);
     });
     $('#edit_close_button').click(function() {
       $('#edit_dialog').hide();
@@ -270,7 +274,7 @@ function d3viz() {
   // Force Layout
   var force = self.force = d3.layout.force()
     .gravity(.05)
-    .distance(function(d) { return 100 * d.value })
+    .distance(function(d) { return 80 * d.value })
     .charge(function(d) { if (d.dashed) return -5000; else return -5000/(d.group/2+1); })
     .size([w, h]);
   force.on("tick", function(e) {
@@ -332,36 +336,47 @@ function d3viz() {
   // WebSockets Support
   //
   var dispatcher = new WebSocketRails('<%= Stories::Application.config.base_url %>/websocket');
+  var posts = [];
+  // Whenever new posts come in, they get pushed onto a queue to be processed
   channel = dispatcher.subscribe('story');
   channel.bind('new', function(post) {
     console.log('a new line '+post.line+' (prev id '+post.prev+') arrived!');
-    if (!(post.real_id in real_to_index) && (post.prev in real_to_index) && !(post.line in self_added_lines)) { // If we haven't seen this node before (prevent adding to self)
-      console.log(real_to_index);
-      console.log(post);
-      
-      // Add the node
-      var prevNode = jnodes[real_to_index[post.prev]]; // Get previous node
-      var node = { "chargeless": true, "real_id": post.real_id, "name": post.line, "is_new": true, "group": prevNode.group + 1, "stroke": 2 };
-      jnodes.push(node);
-      real_to_index[node.real_id] = jnodes.length - 1;
-      
-      // Add + Node
-      jnodes.push({ "chargeless": true, "name": "+", "group": node.group, "stroke": 2, "real_id": "p"+node.real_id, "parentIndex": real_to_index[node.real_id], "dashed": true})
-      jlinks.push({ "source": real_to_index[node.real_id], "target": jnodes.length-1, "value": 0.8 + (node.name.length+50)/100 });
-
-      // Add the link
-      jlinks.push({ "source": real_to_index[post.prev], "target": real_to_index[node.real_id] , "value": 2 + node.name.length / 50 });
-      force.charge(function(d) { 
-        if (d.chargeless) {
-          d.chargeless = false;
-          return 0;
-        } else {
-          if (d.dashed) return -5000; else return -5000/(d.group/2+1);        
-        }
-      })
-      supdate();
-    }
+    posts.push(post);
   });
+  // The function that processes websocket posts. Runs every 100ms, and can be disabled.
+  function createWebsocketPosts() {
+    if (!pauseWebSockets && posts.length > 0) {
+      var post = posts.shift();
+      console.log('processing ' +post.line+'!');
+      if (!(post.real_id in real_to_index) && (post.prev in real_to_index) && !(post.line in self_added_lines)) { // If we haven't seen this node before (prevent adding to self)
+        console.log(real_to_index);
+        console.log(post);
+        
+        // Add the node
+        var prevNode = jnodes[real_to_index[post.prev]]; // Get previous node
+        var node = { "chargeless": true, "real_id": post.real_id, "name": post.line, "is_new": true, "group": prevNode.group + 1, "stroke": 2 };
+        jnodes.push(node);
+        real_to_index[node.real_id] = jnodes.length - 1;
+        
+        // Add + Node
+        jnodes.push({ "chargeless": true, "name": "+", "group": node.group, "stroke": 2, "real_id": "p"+node.real_id, "parentIndex": real_to_index[node.real_id], "dashed": true})
+        jlinks.push({ "source": real_to_index[node.real_id], "target": jnodes.length-1, "value": 0.8 + (node.name.length+50)/100 });
+
+        // Add the link
+        jlinks.push({ "source": real_to_index[post.prev], "target": real_to_index[node.real_id] , "value": 2 + node.name.length / 50 });
+        force.charge(function(d) { 
+          if (d.chargeless) {
+            d.chargeless = false;
+            return 0;
+          } else {
+            if (d.dashed) return -5000; else return -5000/(d.group/2+1);        
+          }
+        })
+        supdate(isDraggable);
+      }
+    }
+  }
+  setInterval(createWebsocketPosts, 100);
   
   //
   // Grabs a new JSON, determines which nodes are new and adds them to the existing graph (Alternative to WebSockets)
@@ -443,7 +458,7 @@ function d3viz() {
 
     // Node Additions
     node = vis.selectAll("g.node")
-      .data(jnodes_temp, function(d) { return d.real_id; })
+      .data(jnodes_temp, function(d) { return d.index; })
       .enter().append("svg:g")
       .attr("class", "node");
     
@@ -457,11 +472,11 @@ function d3viz() {
     nodeCircles = node.append("circle");
     nodePaths = node.append("path");
     updateHelper();
-    vis.selectAll("g.node").data(jnodes_temp, function(d) { return d.real_id; }).exit().remove();
+    vis.selectAll("g.node").data(jnodes_temp, function(d) { return d.index; }).exit().remove();
   
     // Node Updates
     node = vis.selectAll("g.node")
-      .data(jnodes_temp, function(d) { return d.real_id; });
+      .data(jnodes_temp, function(d) { return d.index; });
 
     // console.log(jnodes);
 
