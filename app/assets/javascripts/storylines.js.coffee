@@ -32,10 +32,11 @@ $ ->
     $('section').last().addClass('active')
     $('section').last().find('.storyline_actions a:eq(2)').click()
     e.stopPropagation() # Strange, why is this required?
-    
-$('body').on 'click', 'section', ->
-  $('section').removeClass('active')
-  $(this).addClass('active')
+  
+  $('.story').on 'click', 'section', ->
+    console.log "hi"
+    $('section').removeClass('active')
+    $(this).addClass('active')
 
 $(document).click (e) ->
   $('section').removeClass('active') unless $(e.target).is("section") or $(e.target).parents().is("section")

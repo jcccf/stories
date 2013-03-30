@@ -8,14 +8,15 @@ $(document).click (e) ->
     $(this).remove()
 
 # Show a tooltip with a custom message when hovering on specific icons
-$('body').on 'mouseenter', '[data-tooltip]', ->
-  pos = $(this).offset()
-  widthoffset = $(this).width()/2
-  $('#tooltip').css('top', (pos.top-40)+"px").css('left', (pos.left-21+widthoffset)+"px").show()
-  $('#tooltip_text').html $(this).attr('data-tooltip')
+$ ->
+  $('body').on 'mouseenter', '[data-tooltip]', ->
+    pos = $(this).offset()
+    widthoffset = $(this).width()/2
+    $('#tooltip').css('top', (pos.top-40)+"px").css('left', (pos.left-21+widthoffset)+"px").show()
+    $('#tooltip_text').html $(this).attr('data-tooltip')
 
-$('body').on 'mouseleave', '[data-tooltip]', ->
-  $('#tooltip').hide()
+  $('body').on 'mouseleave', '[data-tooltip]', ->
+    $('#tooltip').hide()
 
-$('.must_login').on 'click', ->
-  notice "Sorry, but you can only do this if you log in!"
+  $('.must_login').on 'click', ->
+    notice "Sorry, but you can only do this if you log in!"
