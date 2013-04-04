@@ -274,7 +274,7 @@ function d3viz() {
   // Force Layout
   var force = self.force = d3.layout.force()
     .gravity(.05)
-    .distance(function(d) { return 80 * d.value })
+    .distance(function(d) { return 90 * d.value })
     .charge(function(d) { if (d.dashed) return -5000; else return -5000/(d.group/2+1); })
     .size([w, h]);
   force.on("tick", function(e) {
