@@ -592,7 +592,13 @@ function d3viz() {
     // Set Text
     node.each(function(d) {
       var curr = d3.select(this);
-      var words = d.name.replace(/^\s+|\s+$/g,"").split(" ");
+      var words = d.name.replace(/^\s+|\s+$/g,"").split(" ")
+      if (!/^[\000-\177]*$/.test(d.name)) {
+        words = words.map(function(x) { return x.match(/.{1,10}/g) });
+        var wordsB = [];
+        wordsB = wordsB.concat.apply(wordsB, words);
+        words = wordsB; 
+      }
       var lineArray = [];
       var numWords = Math.sqrt(words.length) | 0 + 1;
       var numLines = Math.ceil(words.length / numWords);
